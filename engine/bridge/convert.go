@@ -198,6 +198,7 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		return nil, fail("OUTPUT_PUBLISH_FAILED", "cannot publish without overwrite: %v", err)
 	}
 	sort.Strings(preserved)
+	primeTowerReview := len(slots) > 1 && primeTowerProfileEnabled(merged.ProjectSettings)
 	warnings := []string{
 		fmt.Sprintf("Open this project in the target slicer for %s and re-slice before printing.", plan.expectedModel),
 		"Review material slots, supports, nozzle and user print parameters; printer-specific firmware scripts come from the installed target profile.",
@@ -210,30 +211,35 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		warnings = append(warnings,
 			"Multi-color tool use is not verified by this 3MF conversion. Check the native slicer layer preview, physical material assignments and intended tool changes in sliced G-code before printing.")
 	}
+	if primeTowerReview {
+		warnings = append(warnings,
+			"Target prime/wipe tower position and clearance are not verified. Check for collision with the model, brim and excluded bed areas in the actual target slicer before printing; no tower coordinates are automatically moved.")
+	}
 	return map[string]any{
-		"ok":                          true,
-		"target":                      plan.target,
-		"output":                      dst,
-		"engine":                      "bl2std",
-		"source_nozzle":               plan.sourceNozzle.Nozzle,
-		"source_nozzle_source":        plan.sourceNozzle.Source,
-		"source_nozzle_assumed":       plan.sourceNozzle.Assumed,
-		"target_nozzle":               plan.targetNozzle,
-		"nozzle_remapped":             plan.sourceNozzle.Nozzle != plan.targetNozzle,
-		"nozzle_selected_by_user":     plan.requestedNozzle != "",
-		"target_nozzle_origin":        string(plan.nozzleOrigin),
-		"profile_kind":                string(plan.profileKind),
-		"source_filament_slots":       len(plan.filaments),
-		"target_filament_slots_used":  len(slots),
-		"virtual_filament_slots":      len(slots),
-		"physical_toolheads":          plan.physicalTools,
-		"user_slot_mapping_required":  len(slots) > plan.physicalTools,
-		"tool_usage_verification_required": len(slots) > 1,
-		"source_to_target_slot_map":   mapping,
-		"geometry_vertices":           after.vertices,
-		"geometry_triangles":          after.triangles,
-		"removed_slice_cache_entries": removed,
-		"preserved_print_keys":        preserved,
-		"warnings":                    warnings,
+		"ok":                                    true,
+		"target":                                plan.target,
+		"output":                                dst,
+		"engine":                                "bl2std",
+		"source_nozzle":                         plan.sourceNozzle.Nozzle,
+		"source_nozzle_source":                  plan.sourceNozzle.Source,
+		"source_nozzle_assumed":                 plan.sourceNozzle.Assumed,
+		"target_nozzle":                         plan.targetNozzle,
+		"nozzle_remapped":                       plan.sourceNozzle.Nozzle != plan.targetNozzle,
+		"nozzle_selected_by_user":               plan.requestedNozzle != "",
+		"target_nozzle_origin":                  string(plan.nozzleOrigin),
+		"profile_kind":                          string(plan.profileKind),
+		"source_filament_slots":                 len(plan.filaments),
+		"target_filament_slots_used":            len(slots),
+		"virtual_filament_slots":                len(slots),
+		"physical_toolheads":                    plan.physicalTools,
+		"user_slot_mapping_required":            len(slots) > plan.physicalTools,
+		"tool_usage_verification_required":      len(slots) > 1,
+		"prime_tower_clearance_review_required": primeTowerReview,
+		"source_to_target_slot_map":             mapping,
+		"geometry_vertices":                     after.vertices,
+		"geometry_triangles":                    after.triangles,
+		"removed_slice_cache_entries":           removed,
+		"preserved_print_keys":                  preserved,
+		"warnings":                              warnings,
 	}, nil
 }
