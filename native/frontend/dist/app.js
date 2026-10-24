@@ -50,6 +50,7 @@ const translations = {
     switchedNozzle:'בוצעה התאמת קוטר דיזה לפי הגדרות המדפסת.',
     virtualSlotsReview:'כל {n} ערוצי הצבע והחומר מהמקור נשמרו בנפרד. למדפסת {physical} ראשי הדפסה; יש לבחור בתוך הסלייסר מה לאחד או להסיר לפני חיתוך והדפסה.',
     toolUseReview:'פרויקט רב־צבע: המרת 3MF אינה מוכיחה שכל החומרים מופעלים. בדוק בסלייסר היעד שיוך צבעים לכלים, תצוגת שכבות ופקודות החלפת חומר ב־G-code (אם נתמכות). אין להדפיס לפני אימות.',
+    towerClearanceReview:'מיקום מגדל הניקוי לא אומת. יש לבדוק בסלייסר היעד שאין התנגשות בין המגדל או שוליו לבין המודל, ה־brim או אזורים מוחרגים של משטח ההדפסה. SliceBridge אינו מזיז את המגדל אוטומטית.',
     summarySuccess:'הומר בהצלחה',summaryReview:'מיפוי לבדיקה',summaryFailure:'נכשל',
     noSource:'הוסף לפחות קובץ אחד.',noTargets:'בחר מדפסת יעד אחת לפחות.',
     fileLimit:'מותר להוסיף לכל היותר 200 קבצים.',queueEmpty:'עדיין אין קבצים בתור.',
@@ -115,6 +116,7 @@ const translations = {
     switchedNozzle:'Nozzle diameter was adapted to match the saved target configuration.',
     virtualSlotsReview:'All {n} source color/material slots were preserved separately. This printer has {physical} physical tools; choose what to merge or remove in the slicer before slicing or printing.',
     toolUseReview:'Multi-color project: a valid 3MF does not prove that every material is used. Verify material-to-tool assignments, native slicer layer preview and G-code tool changes (where applicable). Do not print before verification.',
+    towerClearanceReview:'Target prime/wipe tower clearance is unverified. Check for collision with the model, brim and excluded bed areas in the native slicer before printing. SliceBridge does not move tower coordinates automatically.',
     summarySuccess:'Converted',summaryReview:'Review mapping',summaryFailure:'Failed',
     noSource:'Add at least one source project.',noTargets:'Select one or more printers.',
     fileLimit:'You can queue a maximum of 200 projects.',queueEmpty:'No files in the queue yet.',
@@ -557,6 +559,9 @@ function resultLine(parent,result,source){
     }
     if(report.tool_usage_verification_required){
       row.append(node('p','warning-line tool-usage-warning',t('toolUseReview')));
+    }
+    if(report.prime_tower_clearance_review_required){
+      row.append(node('p','warning-line tower-clearance-warning',t('towerClearanceReview')));
     }
     addMetric(grid,t('source')+' '+t('nozzle'),(source.nozzle||'?')+' mm');
     addMetric(grid,t('target')+' '+t('nozzle'),(report.target_nozzle||'?')+' mm');

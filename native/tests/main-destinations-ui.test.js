@@ -273,7 +273,7 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
       {type:'PLA',color:'#0000FF'},
       {type:'PLA',color:'#FFFFFF'},
     ]};
-  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4){
+  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4, towerRequired=false){
     const chosenSource={...source,filaments:source.filaments.slice(0,filamentCount)};
     const app=startApp({
       InstalledOrcaTargets:()=>({targets:[orca],rejected:[]}),
@@ -286,6 +286,7 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
           report:{source_filament_slots:filamentCount,target_filament_slots:filamentCount,virtual_filament_slots:filamentCount,
             physical_toolheads:physicalTools,target_nozzle:'0.4',user_slot_mapping_required:mappingRequired,
             tool_usage_verification_required:toolUsageRequired,
+            prime_tower_clearance_review_required:towerRequired,
             geometry_triangles:12,removed_slice_cache_entries:0},
         }]}],
       }),
@@ -323,8 +324,18 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.equal(toolWarning.closest('details'),null);
   assert.match(toolWarning.textContent,/G-code/);
 
+  const placement=await perform(false,true,4,4,true);
+  const placementRow=placement.dom('resultList').querySelector('.result-row');
+  const placementWarning=placementRow.querySelector('.tower-clearance-warning');
+  assert.ok(placementWarning,'a native prime tower must trigger visible clearance review');
+  assert.equal(placementWarning.closest('details'),null,'the tower caution must not be hidden');
+  assert.match(placementWarning.textContent,/collision/);
+  assert.match(placementWarning.textContent,/excluded bed/);
+
   const ordinary=await perform(false,false,1,1);
   const ordinaryRow=ordinary.dom('resultList').querySelector('.result-row');
+  assert.equal(ordinaryRow.querySelector('.tower-clearance-warning'),null,
+    'a single material without tower review should not get a false placement warning');
   assert.equal(ordinaryRow.querySelector('.status-pill').classList.contains('good'),true);
   assert.equal(ordinaryRow.querySelector('.tool-usage-warning'),null,
     'single-channel conversion should not get a false multicolor warning');
