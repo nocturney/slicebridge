@@ -4,6 +4,8 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## Unreleased
 
+- **Release upgrade path (QA-only policy change, not a new binary):** document that `v0.4.0-beta.4` sorts below the already-published `beta.4.dev.N` snapshots and cannot be offered as an upgrade by their existing updater. Add cross-platform SemVer ordering regressions; future release candidates must use a higher tag, bump the embedded app version, and rebuild from the approved exact source commit. Independent review and all release/hardware checks remain required.
+
 ## [0.4.0-beta.4.dev.28] - 2026-10-25 (experimental development stage; not released)
 
 - **Virtual color slots remain independent ([PR #90](https://github.com/nocturney/slicebridge/pull/90)):** clarify that a single nozzle does not establish a one-slot feeder; native materials must be mapped manually, and no color is merged or discarded without explicit intent.

@@ -162,3 +162,38 @@ func TestSingleFileWindowsReleaseIsRecognized(t *testing.T) {
 		t.Fatalf("macOS app bundle missing from release selection: %+v %v", mac, err)
 	}
 }
+
+// Published beta.4.dev.N binaries use SemVer and must not be told that
+// beta.4 is an upgrade: v0.4.0-beta.4 sorts *below* beta.4.dev.N.
+// To reach already-published users, a final release must be tagged
+// beta.5, rc.1, stable 0.4.0, or another version above the dev snapshots.
+// Do not "fix" the updater by silently overriding SemVer comparisons.
+func TestDevSnapshotReleaseCandidateOrdering(t *testing.T) {
+	for _, tc := range []struct {
+		tag, status string
+	}{
+		{"v0.4.0-beta.4", "up_to_date"},
+		{"v0.4.0-beta.4.dev.29", "update_available"},
+		{"v0.4.0-beta.5", "update_available"},
+		{"v0.4.0-rc.1", "update_available"},
+		{"v0.4.0", "update_available"},
+		{"v0.3.9", "up_to_date"},
+	} {
+		t.Run(tc.tag, func(t *testing.T) {
+			body := `[{"tag_name":"` + tc.tag + `","assets":[
+				{"name":"SliceBridge.exe"},{"name":"SliceBridge-macOS-Apple-Silicon.zip"}]}]`
+			for _, platform := range []struct{ os, arch string }{
+				{"windows", "amd64"}, {"darwin", "arm64"},
+			} {
+				result, err := fakeGitHub(t, body, http.StatusOK, "0.4.0-beta.4.dev.28", platform.os, platform.arch)
+				if err != nil || result.Status != tc.status {
+					t.Fatalf("%s/%s tag %s: status=%q expected=%q err=%v", platform.os, platform.arch,
+						tc.tag, result.Status, tc.status, err)
+				}
+				if tc.status == "update_available" && result.ReleaseTag != tc.tag {
+					t.Fatalf("missing expected release tag: %+v", result)
+				}
+			}
+		})
+	}
+}
