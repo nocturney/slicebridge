@@ -273,7 +273,7 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
       {type:'PLA',color:'#0000FF'},
       {type:'PLA',color:'#FFFFFF'},
     ]};
-  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4, towerRequired=false, perPlateMissing=false){
+  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4, towerRequired=false, perPlateMissing=false, unknownPlateCount=false){
     const chosenSource={...source,filaments:source.filaments.slice(0,filamentCount)};
     const app=startApp({
       InstalledOrcaTargets:()=>({targets:[orca],rejected:[]}),
@@ -288,6 +288,9 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
             tool_usage_verification_required:toolUsageRequired,
             prime_tower_clearance_review_required:towerRequired,
             prime_tower_plate_coordinate_review_required:perPlateMissing,
+            prime_tower_plate_position_audit_status:unknownPlateCount?'plate_count_unknown':
+              perPlateMissing?'coordinates_incomplete':
+              towerRequired?'coordinates_present_clearance_unverified':'not_applicable',
             prime_tower_plates:perPlateMissing?2:0,
             prime_tower_coordinate_x_entries:perPlateMissing?1:0,
             prime_tower_coordinate_y_entries:perPlateMissing?1:0,
@@ -348,6 +351,16 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.match(perPlate.textContent,/1.*X/);
   assert.match(perPlate.textContent,/1.*Y/);
   assert.match(perPlate.textContent,/native slicer/);
+
+  const unknown=await perform(false,true,4,4,true,false,true);
+  const unknownRow=unknown.dom('resultList').querySelector('.result-row');
+  const unknownWarning=unknownRow.querySelector('.tower-plate-unknown-warning');
+  assert.ok(unknownWarning,'unknown plate count must be disclosed outside collapsed details');
+  assert.equal(unknownWarning.closest('details'),null);
+  assert.match(unknownWarning.textContent,/plate count/i);
+  assert.match(unknownWarning.textContent,/native slicer/);
+  assert.equal(unknownRow.querySelector('.tower-per-plate-warning'),null,
+    'unknown and incomplete are distinct states');
 
   const ordinary=await perform(false,false,1,1);
   const ordinaryRow=ordinary.dom('resultList').querySelector('.result-row');

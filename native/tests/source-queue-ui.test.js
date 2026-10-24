@@ -88,3 +88,11 @@ test('multicolor tool usage remains unverified even if four slots fit four tools
   assert.match(app,/toolUseReview:'[^']*G-code/);
   assert.match(app,/warning-line tool-usage-warning/);
 });
+
+
+test('unknown target plate metadata has bilingual manual tower review wording',()=>{
+  const app=read('frontend/dist/app.js');
+  assert.match(app,/towerPlateUnknownReview:'לא ניתן לקבוע/);
+  assert.match(app,/towerPlateUnknownReview:'The converted 3MF/);
+  assert.match(app,/tower-plate-unknown-warning/);
+});

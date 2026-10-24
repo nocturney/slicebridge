@@ -224,6 +224,10 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 			"The converted 3MF contains %d plates but only %d X / %d Y prime tower position entries. Verify per-plate tower placement in the native slicer before slicing or printing; the bridge never invents missing coordinates.",
 			towerPositions.plates, towerPositions.xEntries, towerPositions.yEntries))
 	}
+	if primeTowerReview && towerPositions.plates == 0 {
+		warnings = append(warnings,
+			"The converted 3MF plate count could not be determined from its native project metadata. Per-plate prime tower coordinates therefore cannot be audited; inspect each plate and tower clearance in the native slicer before printing.")
+	}
 	return map[string]any{
 		"ok":                                    true,
 		"target":                                plan.target,
@@ -245,6 +249,7 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		"tool_usage_verification_required":      len(slots) > 1,
 		"prime_tower_clearance_review_required": primeTowerReview,
 		"prime_tower_plate_coordinate_review_required": primeTowerReview && towerPositions.incomplete(),
+		"prime_tower_plate_position_audit_status":      towerPositions.status(primeTowerReview),
 		"prime_tower_plates":                           towerPositions.plates,
 		"prime_tower_coordinate_x_entries":             towerPositions.xEntries,
 		"prime_tower_coordinate_y_entries":             towerPositions.yEntries,

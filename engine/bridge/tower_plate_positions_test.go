@@ -27,6 +27,7 @@ func TestMultiPlateTowerCoordinateGapReportedWithoutAutofill(t *testing.T) {
 	}
 	if report["prime_tower_plate_coordinate_review_required"] != true ||
 		report["prime_tower_plates"] != 2 ||
+		report["prime_tower_plate_position_audit_status"] != "coordinates_incomplete" ||
 		report["prime_tower_coordinate_x_entries"] != 1 ||
 		report["prime_tower_coordinate_y_entries"] != 1 {
 		t.Fatalf("missing per-plate coordinate evidence: %+v", report)

@@ -63,7 +63,9 @@ only shipped UI languages. Toggle between them in the top bar; Hebrew is RTL.
   or one shared coordinate pair, while separate QA-only positions sliced.
   SliceBridge does **not** invent/duplicate locations or claim collision-free
   geometry: set and verify each plate's tower, brim, model and excluded bed
-  in the real destination slicer before print approval.
+  in the real destination slicer before print approval. A missing or
+  unreadable plate count is reported as **unknown**, not as cleared; a
+  complete coordinate count is still **unverified clearance**.
 - Source file picker, native drag/drop, output-folder opener, independent
   per-target successes/errors, source/target nozzle in completion report.
 
