@@ -26,6 +26,19 @@ to the chosen *matching* candidate version, obtain an independently reviewed
 source commit, and rebuild that **exact commit**. Never re-label a dev.28
 binary as beta.5 without rebuilding it; never force-update tags.
 
+**Legacy Windows updater asset compatibility:** public source tags
+`v0.4.0-beta.4.dev.8` through `dev.13` match
+`SliceBridge-Windows.zip`, not the later standalone `SliceBridge.exe`.
+A new release must keep BOTH names: provide the new single executable
+and a separate legacy ZIP containing that same exact approved executable,
+including both hashes in the release checksums. Do not call a missing ZIP
+`platform_unavailable` a successful update path. Published Apple Silicon
+clients already recognize `SliceBridge-macOS-Apple-Silicon.zip`.
+This is a release **asset** requirement; it cannot be repaired by changing
+the updater in newer clients. Only use lowercase SemVer prerelease identifiers,
+and check that the *next* version still sorts above any newly published
+`.dev.N` snapshots.
+
 A PR build produced by GitHub Actions can be stamped with a temporary
 `refs/pull/N/merge` SHA. It is useful as QA evidence but is **not** the exact
 squash-merged `main` binary. For publishing, run the native build workflow

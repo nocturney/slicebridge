@@ -4,7 +4,7 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## Unreleased
 
-- **Release upgrade path ([PR #93](https://github.com/nocturney/slicebridge/pull/93); QA-only policy change, not a new binary):** document that `v0.4.0-beta.4` sorts below the already-published `beta.4.dev.N` snapshots and cannot be offered as an upgrade by their existing updater. Add cross-platform SemVer ordering regressions; future release candidates must use a higher tag, bump the embedded app version, and rebuild from the approved exact source commit. Independent review and all release/hardware checks remain required.
+- **Release upgrade path ([PR #93](https://github.com/nocturney/slicebridge/pull/93); QA-only policy change, not a new binary):** document that `v0.4.0-beta.4` sorts below the already-published `beta.4.dev.N` snapshots and cannot be offered as an upgrade by their existing updater. Add cross-platform SemVer ordering regressions and a legacy Windows ZIP asset-compatibility check for published dev.8–dev.13 users; future release candidates must use a higher tag, bump the embedded app version, and rebuild from the approved exact source commit. Independent review and all release/hardware checks remain required.
 
 ## [0.4.0-beta.4.dev.28] - 2026-10-25 (experimental development stage; not released)
 
