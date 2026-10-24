@@ -189,6 +189,11 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 	if after.printerModel != plan.expectedModel {
 		return nil, fail("TARGET_IDENTITY_INVALID", "converted project has unexpected printer model %q (expected %q)", after.printerModel, plan.expectedModel)
 	}
+	primeTowerReview := len(slots) > 1 && primeTowerProfileEnabled(merged.ProjectSettings)
+	var towerPositions towerPlatePositionAudit
+	if primeTowerReview {
+		towerPositions = auditTargetTowerPlatePositions(cleanPath)
+	}
 	// A hard link in the same directory publishes atomically without replacing
 	// an existing output. This protects the source and all previous conversions.
 	if err := os.Link(cleanPath, dst); err != nil {
@@ -198,7 +203,6 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		return nil, fail("OUTPUT_PUBLISH_FAILED", "cannot publish without overwrite: %v", err)
 	}
 	sort.Strings(preserved)
-	primeTowerReview := len(slots) > 1 && primeTowerProfileEnabled(merged.ProjectSettings)
 	warnings := []string{
 		fmt.Sprintf("Open this project in the target slicer for %s and re-slice before printing.", plan.expectedModel),
 		"Review material slots, supports, nozzle and user print parameters; printer-specific firmware scripts come from the installed target profile.",
@@ -214,6 +218,11 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 	if primeTowerReview {
 		warnings = append(warnings,
 			"Target prime/wipe tower position and clearance are not verified. Check for collision with the model, brim and excluded bed areas in the actual target slicer before printing; no tower coordinates are automatically moved.")
+	}
+	if primeTowerReview && towerPositions.incomplete() {
+		warnings = append(warnings, fmt.Sprintf(
+			"The converted 3MF contains %d plates but only %d X / %d Y prime tower position entries. Verify per-plate tower placement in the native slicer before slicing or printing; the bridge never invents missing coordinates.",
+			towerPositions.plates, towerPositions.xEntries, towerPositions.yEntries))
 	}
 	return map[string]any{
 		"ok":                                    true,
@@ -235,11 +244,15 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		"user_slot_mapping_required":            len(slots) > plan.physicalTools,
 		"tool_usage_verification_required":      len(slots) > 1,
 		"prime_tower_clearance_review_required": primeTowerReview,
-		"source_to_target_slot_map":             mapping,
-		"geometry_vertices":                     after.vertices,
-		"geometry_triangles":                    after.triangles,
-		"removed_slice_cache_entries":           removed,
-		"preserved_print_keys":                  preserved,
-		"warnings":                              warnings,
+		"prime_tower_plate_coordinate_review_required": primeTowerReview && towerPositions.incomplete(),
+		"prime_tower_plates":                           towerPositions.plates,
+		"prime_tower_coordinate_x_entries":             towerPositions.xEntries,
+		"prime_tower_coordinate_y_entries":             towerPositions.yEntries,
+		"source_to_target_slot_map":                    mapping,
+		"geometry_vertices":                            after.vertices,
+		"geometry_triangles":                           after.triangles,
+		"removed_slice_cache_entries":                  removed,
+		"preserved_print_keys":                         preserved,
+		"warnings":                                     warnings,
 	}, nil
 }

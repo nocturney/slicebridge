@@ -51,6 +51,7 @@ const translations = {
     virtualSlotsReview:'כל {n} ערוצי הצבע והחומר מהמקור נשמרו בנפרד. בפרופיל היעד רשומים {physical} ראשי הדפסה פיזיים; נתון זה אינו קובע את קיבולת מערכת הזנת הפילמנט. יש לבדוק את מערכת החלפת החומר ולשייך כל ערוץ בסלייסר היעד. אין לאחד או להסיר צבעים ללא בחירה מפורשת.',
     toolUseReview:'פרויקט רב־צבע: המרת 3MF אינה מוכיחה שכל החומרים מופעלים. בדוק בסלייסר היעד שיוך צבעים לכלים, תצוגת שכבות ופקודות החלפת חומר ב־G-code (אם נתמכות). אין להדפיס לפני אימות.',
     towerClearanceReview:'מיקום מגדל הניקוי לא אומת. יש לבדוק בסלייסר היעד שאין התנגשות בין המגדל או שוליו לבין המודל, ה־brim או אזורים מוחרגים של משטח ההדפסה. SliceBridge אינו מזיז את המגדל אוטומטית.',
+    towerPerPlateReview:'ב־3MF המומר יש {plates} משטחים, אך נמצאו רק {x} ערכי X ו־{y} ערכי Y למיקומי מגדל הניקוי. בדוק וקבע מיקום נפרד לכל משטח בסלייסר היעד לפני חיתוך או הדפסה. SliceBridge לא המציא מיקומים.',
     summarySuccess:'הומר בהצלחה',summaryReview:'מיפוי לבדיקה',summaryFailure:'נכשל',
     noSource:'הוסף לפחות קובץ אחד.',noTargets:'בחר מדפסת יעד אחת לפחות.',
     fileLimit:'מותר להוסיף לכל היותר 200 קבצים.',queueEmpty:'עדיין אין קבצים בתור.',
@@ -117,6 +118,7 @@ const translations = {
     virtualSlotsReview:'All {n} source color/material slots were preserved separately. The target profile reports {physical} physical toolhead(s); this does not establish feeder capacity. Verify the actual filament changer/feeder and explicitly assign every material in the destination slicer. Do not combine or discard colors unless intentionally requested.',
     toolUseReview:'Multi-color project: a valid 3MF does not prove that every material is used. Verify material-to-tool assignments, native slicer layer preview and G-code tool changes (where applicable). Do not print before verification.',
     towerClearanceReview:'Target prime/wipe tower clearance is unverified. Check for collision with the model, brim and excluded bed areas in the native slicer before printing. SliceBridge does not move tower coordinates automatically.',
+    towerPerPlateReview:'The converted 3MF has {plates} plates but only {x} X and {y} Y prime tower coordinate entries. Set and verify per-plate tower placement for each plate in the native slicer before slicing or printing. SliceBridge has not invented positions.',
     summarySuccess:'Converted',summaryReview:'Review mapping',summaryFailure:'Failed',
     noSource:'Add at least one source project.',noTargets:'Select one or more printers.',
     fileLimit:'You can queue a maximum of 200 projects.',queueEmpty:'No files in the queue yet.',
@@ -562,6 +564,10 @@ function resultLine(parent,result,source){
     }
     if(report.prime_tower_clearance_review_required){
       row.append(node('p','warning-line tower-clearance-warning',t('towerClearanceReview')));
+    }
+    if(report.prime_tower_clearance_review_required&&report.prime_tower_plate_coordinate_review_required){
+      row.append(node('p','warning-line tower-per-plate-warning',
+        t('towerPerPlateReview',{plates:report.prime_tower_plates,x:report.prime_tower_coordinate_x_entries,y:report.prime_tower_coordinate_y_entries})));
     }
     addMetric(grid,t('source')+' '+t('nozzle'),(source.nozzle||'?')+' mm');
     addMetric(grid,t('target')+' '+t('nozzle'),(report.target_nozzle||'?')+' mm');

@@ -273,7 +273,7 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
       {type:'PLA',color:'#0000FF'},
       {type:'PLA',color:'#FFFFFF'},
     ]};
-  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4, towerRequired=false){
+  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4, towerRequired=false, perPlateMissing=false){
     const chosenSource={...source,filaments:source.filaments.slice(0,filamentCount)};
     const app=startApp({
       InstalledOrcaTargets:()=>({targets:[orca],rejected:[]}),
@@ -287,6 +287,10 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
             physical_toolheads:physicalTools,target_nozzle:'0.4',user_slot_mapping_required:mappingRequired,
             tool_usage_verification_required:toolUsageRequired,
             prime_tower_clearance_review_required:towerRequired,
+            prime_tower_plate_coordinate_review_required:perPlateMissing,
+            prime_tower_plates:perPlateMissing?2:0,
+            prime_tower_coordinate_x_entries:perPlateMissing?1:0,
+            prime_tower_coordinate_y_entries:perPlateMissing?1:0,
             geometry_triangles:12,removed_slice_cache_entries:0},
         }]}],
       }),
@@ -335,6 +339,15 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.equal(placementWarning.closest('details'),null,'the tower caution must not be hidden');
   assert.match(placementWarning.textContent,/collision/);
   assert.match(placementWarning.textContent,/excluded bed/);
+  const multi=await perform(true,true,1,4,true,true);
+  const multiRow=multi.dom('resultList').querySelector('.result-row');
+  const perPlate=multiRow.querySelector('.tower-per-plate-warning');
+  assert.ok(perPlate,'two plates with incomplete tower X/Y must have their own visible warning');
+  assert.equal(perPlate.closest('details'),null,'per-plate blocker cannot hide in collapsed diagnostics');
+  assert.match(perPlate.textContent,/2.*plates/);
+  assert.match(perPlate.textContent,/1.*X/);
+  assert.match(perPlate.textContent,/1.*Y/);
+  assert.match(perPlate.textContent,/native slicer/);
 
   const ordinary=await perform(false,false,1,1);
   const ordinaryRow=ordinary.dom('resultList').querySelector('.result-row');

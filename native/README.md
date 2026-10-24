@@ -56,6 +56,14 @@ only shipped UI languages. Toggle between them in the top bar; Hebrew is RTL.
   merged or discarded, nor should they be without an explicit choice.
   Native vendor materials still require compatible installed profiles;
   some slicer builds may limit imported virtual slots to physical tools.
+- **Prime/wipe tower across multiple plates:** if an enabled native tower
+  has fewer numeric X or Y coordinate entries than the converted 3MF has
+  declared plates, the result shows a visible plate-specific review warning.
+  Real OrcaSlicer 2.4.2 Kobra 3 QA rejected two-plate files with missing
+  or one shared coordinate pair, while separate QA-only positions sliced.
+  SliceBridge does **not** invent/duplicate locations or claim collision-free
+  geometry: set and verify each plate's tower, brim, model and excluded bed
+  in the real destination slicer before print approval.
 - Source file picker, native drag/drop, output-folder opener, independent
   per-target successes/errors, source/target nozzle in completion report.
 
