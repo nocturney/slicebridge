@@ -309,6 +309,10 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.equal(warning.closest('details'),null,'warning cannot live in collapsed details');
   assert.equal(warning.hidden,false);
   assert.match(warning.textContent,/All 4 source color\/material/);
+  assert.match(warning.textContent,/feeder capacity/i,
+    'a one-nozzle printer may still have multiple material feed channels');
+  assert.doesNotMatch(warning.textContent,/choose what to merge or remove/i,
+    'source colors must not be discarded just because the machine has one nozzle');
   const detail=row.querySelector('.report-details');
   assert.ok(detail,'diagnostic details remain accessible');
   assert.equal(detail.open,false,'even closed diagnostic panel must not hide warning');
