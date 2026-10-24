@@ -8,7 +8,7 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## [0.4.0-beta.4.dev.29] - 2026-10-25 (experimental development source stage; not released)
 
-- **Bounded MakerWorld imports (review pending):** the opt-in Developer Mode external URI bridge now caps simultaneous 3MF HTTP downloads at two per desktop instance, rejects additional distinct URLs with a sanitized retry message, ignores duplicate in-flight URLs, and releases slots after success or failure. This limits concurrent download resources; it is **not** a total disk quota or physical print safety approval.
+- **Bounded MakerWorld imports ([PR #96](https://github.com/nocturney/slicebridge/pull/96); review pending):** the opt-in Developer Mode external URI bridge now caps simultaneous 3MF HTTP downloads at two per desktop instance, rejects additional distinct URLs with a sanitized retry message, ignores duplicate in-flight URLs, and releases slots after success or failure. This limits concurrent download resources; it is **not** a total disk quota or physical print safety approval.
 - **Regression safety:** concurrent 100-URI in-memory permit race simulation, duplicate/retry/startup permit tests, and existing HTTPS/redirect/SSRF guards remain unchanged. No printer commands, browser permission change, user/OEM preset modifications or source geometry changes. Release, installer and hardware QA remain separate.
 
 ## [0.4.0-beta.4.dev.28] - 2026-10-25 (experimental development stage; not released)
