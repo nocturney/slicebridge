@@ -206,6 +206,10 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		warnings = append(warnings, fmt.Sprintf(
 			"All %d original color/material slots are preserved as separate virtual project filaments. The printer has %s: resolve any merges/removals and verify profiles inside the slicer before slicing or printing.", len(slots), physicalToolPhrase(plan.physicalTools)))
 	}
+	if len(slots) > 1 {
+		warnings = append(warnings,
+			"Multi-color tool use is not verified by this 3MF conversion. Check the native slicer layer preview, physical material assignments and intended tool changes in sliced G-code before printing.")
+	}
 	return map[string]any{
 		"ok":                          true,
 		"target":                      plan.target,
@@ -224,6 +228,7 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 		"virtual_filament_slots":      len(slots),
 		"physical_toolheads":          plan.physicalTools,
 		"user_slot_mapping_required":  len(slots) > plan.physicalTools,
+		"tool_usage_verification_required": len(slots) > 1,
 		"source_to_target_slot_map":   mapping,
 		"geometry_vertices":           after.vertices,
 		"geometry_triangles":          after.triangles,
