@@ -2,6 +2,7 @@ package updates
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -160,5 +161,72 @@ func TestSingleFileWindowsReleaseIsRecognized(t *testing.T) {
 	mac, err := fakeGitHub(t, body, 200, "0.4.0-beta.4.dev.13", "darwin", "arm64")
 	if err != nil || mac.Status != "update_available" || mac.AssetName != "SliceBridge-macOS-Apple-Silicon.zip" {
 		t.Fatalf("macOS app bundle missing from release selection: %+v %v", mac, err)
+	}
+}
+
+// Published beta.4.dev.N binaries use SemVer and must not be told that
+// beta.4 is an upgrade: v0.4.0-beta.4 sorts *below* beta.4.dev.N.
+// To reach already-published users, a final release must be tagged
+// beta.5, rc.1, stable 0.4.0, or another version above the dev snapshots.
+// Do not "fix" the updater by silently overriding SemVer comparisons.
+func TestDevSnapshotReleaseCandidateOrdering(t *testing.T) {
+	for _, tc := range []struct {
+		tag, status string
+	}{
+		{"v0.4.0-beta.4", "up_to_date"},
+		{"v0.4.0-beta.4.dev.29", "update_available"},
+		{"v0.4.0-beta.5", "update_available"},
+		{"v0.4.0-rc.1", "update_available"},
+		{"v0.4.0", "update_available"},
+		{"v0.3.9", "up_to_date"},
+	} {
+		t.Run(tc.tag, func(t *testing.T) {
+			body := `[{"tag_name":"` + tc.tag + `","assets":[
+				{"name":"SliceBridge.exe"},{"name":"SliceBridge-macOS-Apple-Silicon.zip"}]}]`
+			for _, platform := range []struct{ os, arch string }{
+				{"windows", "amd64"}, {"darwin", "arm64"},
+			} {
+				result, err := fakeGitHub(t, body, http.StatusOK, "0.4.0-beta.4.dev.28", platform.os, platform.arch)
+				if err != nil || result.Status != tc.status {
+					t.Fatalf("%s/%s tag %s: status=%q expected=%q err=%v", platform.os, platform.arch,
+						tc.tag, result.Status, tc.status, err)
+				}
+				if tc.status == "update_available" && result.ReleaseTag != tc.tag {
+					t.Fatalf("missing expected release tag: %+v", result)
+				}
+			}
+		})
+	}
+}
+
+// The published dev.8-dev.13 Windows updaters (verified from those tagged
+// source trees) recognize SliceBridge-Windows.zip, NOT SliceBridge.exe.
+// A future beta.5 candidate needs BOTH names so old clients are notified
+// and newer clients still prefer the standalone executable.
+func TestLegacyWindowsZipAliasForPublishedDevClients(t *testing.T) {
+	const body = `[{"tag_name":"v0.4.0-beta.5","assets":[
+   {"name":"SliceBridge.exe"},
+   {"name":"SliceBridge-Windows.zip"},
+   {"name":"SliceBridge-macOS-Apple-Silicon.zip"}]}]`
+	var releases []release
+	if err := json.Unmarshal([]byte(body), &releases); err != nil || len(releases) != 1 {
+		t.Fatalf("invalid sample Release: %v", err)
+	}
+	oldWindowsExpected := []string{
+		"slicebridge-windows.zip",
+		"slicebridge-windows-native.zip",
+		"3mf-bridge-windows-native.zip",
+		"3mf-bridge-windows-x64.zip",
+	}
+	if got := matchingAsset(releases[0], oldWindowsExpected); got != "SliceBridge-Windows.zip" {
+		t.Fatalf("public dev.8-13 users cannot discover a future upgrade: %q", got)
+	}
+	modern, err := fakeGitHub(t, body, http.StatusOK, "0.4.0-beta.4.dev.28", "windows", "amd64")
+	if err != nil || modern.Status != "update_available" || modern.AssetName != "SliceBridge.exe" {
+		t.Fatalf("modern Windows should prefer single EXE: %+v err=%v", modern, err)
+	}
+	mac, err := fakeGitHub(t, body, http.StatusOK, "0.4.0-beta.4.dev.28", "darwin", "arm64")
+	if err != nil || mac.Status != "update_available" || mac.AssetName != "SliceBridge-macOS-Apple-Silicon.zip" {
+		t.Fatalf("macOS should use its own ZIP: %+v err=%v", mac, err)
 	}
 }
