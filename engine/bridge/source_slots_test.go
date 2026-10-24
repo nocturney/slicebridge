@@ -221,3 +221,33 @@ func TestDuplicateIdenticalSourceFilamentsRemainSeparateInOutput(t *testing.T) {
 		t.Fatalf("duplicate source colors not retained as separate spools: %+v", converted.Filaments)
 	}
 }
+
+func TestMulticolorToolUseIsUnverifiedEvenWithFourMatchingPhysicalTools(t *testing.T) {
+	for _, colors := range []int{1, 4} {
+		t.Run(fmt.Sprintf("source-slots-%d", colors), func(t *testing.T) {
+			dir := t.TempDir()
+			source := filepath.Join(dir, "source.3mf")
+			output := filepath.Join(dir, "target.3mf")
+			fixture(t, source, colors)
+			got, err := Convert(source, output, "u1")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got["physical_toolheads"] != 4 || got["user_slot_mapping_required"] != false {
+				t.Fatalf("synthetic 1/4-slot project should fit four tools: %+v", got)
+			}
+			if got["tool_usage_verification_required"] != (colors > 1) {
+				t.Fatalf("tool use must be reviewed even when the slot count fits: %+v", got)
+			}
+			if colors > 1 {
+				found := false
+				for _, message := range got["warnings"].([]string) {
+					found = found || strings.Contains(message, "tool use") && strings.Contains(message, "G-code")
+				}
+				if !found {
+					t.Fatalf("multicolor output has no actionable tool-use warning: %+v", got["warnings"])
+				}
+			}
+		})
+	}
+}

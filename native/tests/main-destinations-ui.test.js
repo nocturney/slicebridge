@@ -273,17 +273,19 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
       {type:'PLA',color:'#0000FF'},
       {type:'PLA',color:'#FFFFFF'},
     ]};
-  async function perform(mappingRequired){
+  async function perform(mappingRequired, toolUsageRequired=false, physicalTools=1, filamentCount=4){
+    const chosenSource={...source,filaments:source.filaments.slice(0,filamentCount)};
     const app=startApp({
       InstalledOrcaTargets:()=>({targets:[orca],rejected:[]}),
       GetMyPrinters:()=>({selectedIds:[orcaId],onboardingPending:false}),
-      SelectFiles:()=>[source],
+      SelectFiles:()=>[chosenSource],
       ConvertBatch:()=>({
         filesDone:1,successes:1,failures:0,error:'',
-        files:[{source,failures:[],results:[{
+        files:[{source:chosenSource,failures:[],results:[{
           target:orcaId,ok:true,outputName:'four-converted.3mf',outputPath:'C:/qa/four-converted.3mf',
-          report:{source_filament_slots:4,target_filament_slots:4,virtual_filament_slots:4,
-            physical_toolheads:1,target_nozzle:'0.4',user_slot_mapping_required:mappingRequired,
+          report:{source_filament_slots:filamentCount,target_filament_slots:filamentCount,virtual_filament_slots:filamentCount,
+            physical_toolheads:physicalTools,target_nozzle:'0.4',user_slot_mapping_required:mappingRequired,
+            tool_usage_verification_required:toolUsageRequired,
             geometry_triangles:12,removed_slice_cache_entries:0},
         }]}],
       }),
@@ -310,9 +312,20 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.ok(detail,'diagnostic details remain accessible');
   assert.equal(detail.open,false,'even closed diagnostic panel must not hide warning');
 
-  const ordinary=await perform(false);
+  const matchingFour=await perform(false,true,4,4);
+  const matchingRow=matchingFour.dom('resultList').querySelector('.result-row');
+  assert.equal(matchingRow.querySelector('.status-pill').classList.contains('review'),true,
+    'four source materials and four tools still require physical tool-use verification');
+  assert.equal(matchingRow.querySelector('.material-mapping-warning'),null,
+    'equal source and physical capacity must not show the overflow warning');
+  const toolWarning=matchingRow.querySelector('.tool-usage-warning');
+  assert.ok(toolWarning,'multicolor tool verification warning must be visible');
+  assert.equal(toolWarning.closest('details'),null);
+  assert.match(toolWarning.textContent,/G-code/);
+
+  const ordinary=await perform(false,false,1,1);
   const ordinaryRow=ordinary.dom('resultList').querySelector('.result-row');
   assert.equal(ordinaryRow.querySelector('.status-pill').classList.contains('good'),true);
-  assert.equal(ordinaryRow.querySelector('.material-mapping-warning'),null,
-    'ordinary one-to-one conversion should not get a false material warning');
+  assert.equal(ordinaryRow.querySelector('.tool-usage-warning'),null,
+    'single-channel conversion should not get a false multicolor warning');
 });

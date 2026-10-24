@@ -49,6 +49,7 @@ const translations = {
     sourceAssumed:'קוטר דיזת המקור לא זוהה — הונחה 0.4 מ״מ.',
     switchedNozzle:'בוצעה התאמת קוטר דיזה לפי הגדרות המדפסת.',
     virtualSlotsReview:'כל {n} ערוצי הצבע והחומר מהמקור נשמרו בנפרד. למדפסת {physical} ראשי הדפסה; יש לבחור בתוך הסלייסר מה לאחד או להסיר לפני חיתוך והדפסה.',
+    toolUseReview:'פרויקט רב־צבע: המרת 3MF אינה מוכיחה שכל החומרים מופעלים. בדוק בסלייסר היעד שיוך צבעים לכלים, תצוגת שכבות ופקודות החלפת חומר ב־G-code (אם נתמכות). אין להדפיס לפני אימות.',
     summarySuccess:'הומר בהצלחה',summaryReview:'מיפוי לבדיקה',summaryFailure:'נכשל',
     noSource:'הוסף לפחות קובץ אחד.',noTargets:'בחר מדפסת יעד אחת לפחות.',
     fileLimit:'מותר להוסיף לכל היותר 200 קבצים.',queueEmpty:'עדיין אין קבצים בתור.',
@@ -113,6 +114,7 @@ const translations = {
     sourceAssumed:'No source nozzle specified — 0.4 mm assumed.',
     switchedNozzle:'Nozzle diameter was adapted to match the saved target configuration.',
     virtualSlotsReview:'All {n} source color/material slots were preserved separately. This printer has {physical} physical tools; choose what to merge or remove in the slicer before slicing or printing.',
+    toolUseReview:'Multi-color project: a valid 3MF does not prove that every material is used. Verify material-to-tool assignments, native slicer layer preview and G-code tool changes (where applicable). Do not print before verification.',
     summarySuccess:'Converted',summaryReview:'Review mapping',summaryFailure:'Failed',
     noSource:'Add at least one source project.',noTargets:'Select one or more printers.',
     fileLimit:'You can queue a maximum of 200 projects.',queueEmpty:'No files in the queue yet.',
@@ -523,6 +525,9 @@ function filamentColors(filaments){
   }
   return wrapper;
 }
+function requiresToolUseReview(report){
+  return Boolean(report?.user_slot_mapping_required || report?.tool_usage_verification_required);
+}
 function resultLine(parent,result,source){
   const row=node('div','result-row');
   const top=node('div','result-head');
@@ -531,7 +536,7 @@ function resultLine(parent,result,source){
   const subtitle=node('div','result-path',result.ok?result.outputName:result.error);
   subtitle.title=result.ok?result.outputPath:result.error;
   content.append(title,subtitle);
-  const mappingReview=Boolean(result.ok&&result.report?.user_slot_mapping_required);
+  const mappingReview=Boolean(result.ok&&requiresToolUseReview(result.report));
   const status=node('span','status-pill '+(result.ok?(mappingReview?'review':'good'):'bad'),
     result.ok?(mappingReview?t('summaryReview'):t('summarySuccess')):t('summaryFailure'));
   top.append(content,status);row.append(top);
@@ -546,9 +551,12 @@ function resultLine(parent,result,source){
     const heading=node('summary','',t('details'));
     const grid=node('div','detail-grid');
     const report=result.report||{};
-    if(mappingReview){
+    if(report.user_slot_mapping_required){
       row.append(node('p','warning-line material-mapping-warning',
         t('virtualSlotsReview',{n:report.virtual_filament_slots,physical:report.physical_toolheads})));
+    }
+    if(report.tool_usage_verification_required){
+      row.append(node('p','warning-line tool-usage-warning',t('toolUseReview')));
     }
     addMetric(grid,t('source')+' '+t('nozzle'),(source.nozzle||'?')+' mm');
     addMetric(grid,t('target')+' '+t('nozzle'),(report.target_nozzle||'?')+' mm');
