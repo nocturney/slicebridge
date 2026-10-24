@@ -69,6 +69,17 @@ only shipped UI languages. Toggle between them in the top bar; Hebrew is RTL.
 - Source file picker, native drag/drop, output-folder opener, independent
   per-target successes/errors, source/target nozzle in completion report.
 
+## MakerWorld import limits (Developer Mode)
+
+The optional `slicebridge://` import requires an explicit Developer Mode
+opt-in. At most **two** remote MakerWorld downloads run at once; extra
+distinct links are rejected immediately with a generic retry message,
+rather than silently starting unlimited downloads. Duplicate in-flight
+URLs remain ignored. This is a bounded-concurrency safeguard, **not**
+a quota on downloaded files or independent approval of the remote source.
+The original hostname, redirect, HTTPS and private-network protections
+remain in effect. No physical printer is ever contacted by this feature.
+
 ## PrusaSlicer project (generic)
 
 The fixed **PrusaSlicer project** target writes `PRUSA-<name>.3mf` beside the

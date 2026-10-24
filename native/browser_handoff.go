@@ -22,8 +22,14 @@ import (
 
 const makerWorldMaxBytes int64 = 250 << 20
 
+// A malicious or accidental burst of distinct external app URLs must not
+// launch unbounded 250 MB downloads. This limits active imports per desktop
+// process, not the amount of work a user can perform over time.
+const maxConcurrentMakerWorldImports = 2
+
 // BrowserBridge opens only the private slicebridge:// protocol, never
 // overrides bambustudio:// or any system-wide .3mf default file handler.
+// It never buffers unbounded live 3MF download requests after startup.
 type BrowserBridge struct {
 	mu      sync.Mutex
 	waiting []string
@@ -32,6 +38,32 @@ type BrowserBridge struct {
 }
 
 var externalBridge = &BrowserBridge{active: map[string]bool{}}
+
+// reserveActiveImport is called only after Developer Mode and native
+// slicebridge:// validation. It is a permit counter, with no I/O or events,
+// and allows the import to start only when a desktop context exists.
+// Duplicates are silently ignored; overload has an explicit busy result.
+func (b *BrowserBridge) reserveActiveImport(raw string) (ctx context.Context, ok, busy bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ctx == nil || b.active[raw] {
+		return nil, false, false
+	}
+	if len(b.active) >= maxConcurrentMakerWorldImports {
+		return b.ctx, false, true
+	}
+	if b.active == nil {
+		b.active = make(map[string]bool, maxConcurrentMakerWorldImports)
+	}
+	b.active[raw] = true
+	return b.ctx, true, false
+}
+
+func (b *BrowserBridge) releaseActiveImport(raw string) {
+	b.mu.Lock()
+	delete(b.active, raw)
+	b.mu.Unlock()
+}
 
 func (b *BrowserBridge) setContext(ctx context.Context) {
 	b.mu.Lock()
@@ -72,20 +104,18 @@ func (b *BrowserBridge) handle(raw string) {
 	if checkDeveloperMode() != nil {
 		return
 	}
-	b.mu.Lock()
-	ctx := b.ctx
-	if ctx == nil {
-		b.mu.Unlock()
+	ctx, reserved, busy := b.reserveActiveImport(raw)
+	if !reserved {
+		if busy {
+			// A non-sensitive, bounded failure message is preferable to silently
+			// queueing hundreds of high-volume imports. Never expose the URL.
+			wailsruntime.EventsEmit(ctx, "bridge:makerworld-import-failed",
+				"MakerWorld already has two active imports. Retry after they finish.")
+		}
 		return
 	}
-	if b.active[raw] {
-		b.mu.Unlock()
-		return
-	}
-	b.active[raw] = true
-	b.mu.Unlock()
 	go func() {
-		defer func() { b.mu.Lock(); delete(b.active, raw); b.mu.Unlock() }()
+		defer b.releaseActiveImport(raw)
 		link, err := makerworld.ParseLink(raw)
 		if err != nil {
 			return
