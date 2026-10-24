@@ -144,6 +144,9 @@ func buildPlan(source, destination string, resolve profileResolver) (conversionP
 	if err != nil {
 		return plan, fail("SOURCE_FILAMENTS_INVALID", "%v", err)
 	}
+	if err := validateSourceMaterialReferences(src, insp.Filaments); err != nil {
+		return plan, err
+	}
 	if resolved.bundle != nil {
 		// The machine's physical tools remain unchanged. Extra slots are virtual
 		// project filaments for manual slicer review.
