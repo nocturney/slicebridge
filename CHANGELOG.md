@@ -4,6 +4,12 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## Unreleased
 
+## [0.4.0-beta.4.dev.26] - 2026-10-24 (experimental development build; not yet released)
+
+- **Visible multi-color tool-use verification (PR #85):** do not mark a 4-source-color/4-tool 3MF conversion as ordinary green success when its G-code tool use is unverified. The conversion engine now reports a separate `tool_usage_verification_required` flag for multichannel sources; native Windows/macOS results display `Review mapping` and an always-visible Hebrew/English caution about physical material assignment, native layer preview and tool-change validation. The existing capacity-specific manual slot mapping flag remains independent and unchanged.
+- **Evidence-based scope:** the earlier Kobra 3 4-color fixture's sliced G-code had T0/T1/T2 but no T3 while its source 4-tool reference used T3; preserved 3MF palette/paint is insufficient to certify tool activation. This build does NOT automatically restore a tool, change source paint/mesh, rewrite vendor profiles or send print jobs. Target-specific prime/wipe-tower placement (including known collision in the QA fixture) and Creality Print 7.3 Windows CLI vs macOS GUI positional differences still require examination in the actual target slicer.
+- **Verification:** source-slot regression (one vs four channels), runtime native UI warning/normal success regressions and independent Windows/macOS CI for PR #85 passed; exact-version native application QA and release asset checks are separate publication gates. This remains an unsigned/unnotarized experimental preview, NOT print-safety approval.
+
 ## [0.4.0-beta.4.dev.25] - 2026-10-24 (experimental development build; not yet released)
 
 - **Integrated target resolver ([PR #78](https://github.com/nocturney/slicebridge/pull/78)):** merge the reviewed native installed-vendor profile resolution into `main`, preserving existing Bambu 3MF geometry, source material slots, actual machine nozzle and the user-owned slicer presets. Repair Flash Studio Desktop on Windows for the physical four-tool Flashforge Creator 5 0.4 mm and Creator 5 Pro 0.25 mm by aligning supported-filament flags to the manufacturer's real profile requirements; reject ambiguous/malformed values rather than guessing.
