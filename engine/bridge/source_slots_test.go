@@ -154,6 +154,14 @@ func TestConvertFiveDistinctChannelsPreservesPaintPaletteAndMaterial(t *testing.
 		got["physical_toolheads"] != 4 || got["user_slot_mapping_required"] != true {
 		t.Fatalf("incorrect review and slot metadata: %+v", got)
 	}
+	// Source colors are virtual slots, not physical nozzles. A feeder or
+	// filament changer may address more materials than the nozzle count.
+	// Never instruct users to discard source colors merely due to this count.
+	warnings := strings.Join(got["warnings"].([]string), "\n")
+	if !strings.Contains(warnings, "feeder capacity") ||
+		strings.Contains(warnings, "resolve any merges/removals") {
+		t.Fatalf("mapping review must clarify feeder capacity without urging color loss: %s", warnings)
+	}
 	mapping := got["source_to_target_slot_map"].(map[int]int)
 	for id := 1; id <= 5; id++ {
 		if mapping[id] != id {

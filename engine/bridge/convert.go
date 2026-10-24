@@ -205,7 +205,7 @@ func publishConversion(plan conversionPlan) (map[string]any, error) {
 	}
 	if len(slots) > plan.physicalTools {
 		warnings = append(warnings, fmt.Sprintf(
-			"All %d original color/material slots are preserved as separate virtual project filaments. The printer has %s: resolve any merges/removals and verify profiles inside the slicer before slicing or printing.", len(slots), physicalToolPhrase(plan.physicalTools)))
+			"All %d original color/material slots remain separate virtual project filaments. The target profile reports %s; this does not establish filament feeder capacity. Verify material-changing hardware and each slot's assignment in the native slicer. Do not combine or discard colors unless explicitly intended.", len(slots), physicalToolPhrase(plan.physicalTools)))
 	}
 	if len(slots) > 1 {
 		warnings = append(warnings,

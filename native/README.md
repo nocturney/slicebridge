@@ -46,12 +46,14 @@ only shipped UI languages. Toggle between them in the top bar; Hebrew is RTL.
   forks, Bambu Studio and PrusaSlicer are eligible fallbacks. A non-OEM cover
   does *not* supply a machine/filament preset, and similar model names are
   never treated as interchangeable. No network lookup or bundled art.
-- For projects with more than four Bambu source color/material channels,
-  preserve **every original virtual filament**, its material type, its color
-  and its painted/object assignments in the converted 3MF. This is NOT
-  permission to print with more tools than the printer physically has:
-  users choose merges/removals and verify settings in the destination slicer.
-  The app never combines slots automatically, even if colors match.
+- For projects with more source color/material channels than the target's
+  reported physical toolheads, preserve **every original virtual filament**,
+  its type, color, and painted/object assignments in the converted 3MF.
+  Physical nozzle count does **not** establish independent feeder capacity:
+  a single-nozzle machine may have a material changer with multiple slots.
+  Users must verify the actual installed feeder, material/tool assignments
+  and native layer preview; excess source colors are not automatically
+  merged or discarded, nor should they be without an explicit choice.
   Native vendor materials still require compatible installed profiles;
   some slicer builds may limit imported virtual slots to physical tools.
 - Source file picker, native drag/drop, output-folder opener, independent
