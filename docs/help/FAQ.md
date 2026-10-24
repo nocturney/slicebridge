@@ -14,7 +14,7 @@
 
 **Does SliceBridge bundle manufacturers' profiles?** The intended model is to use compatible profiles already installed on the user's machine, with manufacturer-native verified sources preferred where available. Redistribution of third-party profiles requires separate rights clearance.
 
-**Does it upload my model?** Standard 3MF conversion operates on your computer and does not send project files to a SliceBridge server. The optional, Developer-Mode MakerWorld integration can download a file from MakerWorld/Bambu when you choose to import it; the on-demand update check contacts GitHub for release metadata. See the [desktop and extension privacy disclosure](../legal/PRIVACY.md) for exact scope and review limits.
+**Does it upload my model?** Standard 3MF conversion operates on your computer and does not send project files to a SliceBridge server. The optional MakerWorld integration (Developer Mode) can download a file from MakerWorld/Bambu when you choose to import it; the on-demand update check contacts GitHub for release metadata. See the [desktop and extension privacy disclosure](../legal/PRIVACY.md) for exact scope and review limits.
 
 **Where do I report a problem?** See [Support](../../.github/SUPPORT.md). For security vulnerabilities use [private reporting](../../.github/SECURITY.md).
 
