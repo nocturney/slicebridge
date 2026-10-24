@@ -53,6 +53,7 @@ function seedTargetList(document){
 function startApp(config={}){
   const document=createDocument();
   const rows=seedTargetList(document);
+  const {__runtimeEvents, ...apiConfig}=config;
   const {wailsApp,calls}=recordingApp({
     GetSettings:()=>({version:1,window:{width:1100,height:750},
       printers:Object.fromEntries(targets.map(target=>[target,{nozzle:'auto',slicer:'auto',filaments:{}}]))}),
@@ -60,9 +61,15 @@ function startApp(config={}){
     Availability:()=>availabilityAll(),
     InstalledOrcaTargets:()=>({targets:[],rejected:[]}),
     PrusaEngineStatus:()=>({available:false,engine:'prusa-slicer'}),
-    ...config,
+    ...apiConfig,
   });
   const window=createWindow(wailsApp);
+  if(__runtimeEvents){
+    window.runtime={
+      EventsOn:(name)=>__runtimeEvents.push('subscribe:'+name),
+      OnFileDrop:()=>__runtimeEvents.push('filedrop:subscribed'),
+    };
+  }
   const context={
     window,document,Event:FakeEvent,
     navigator:{language:'en-US'},
@@ -84,6 +91,30 @@ function startApp(config={}){
 
 const visible=(row)=>!row.hidden;
 const checked=(row)=>row.querySelector('input').checked;
+
+test('MakerWorld frontend acknowledges native startup queue only after event listeners and picker initialization',async()=>{
+  const events=[];
+  const app=startApp({
+    __runtimeEvents:events,
+    GetMyPrinters:()=>{events.push('picker:loaded');return {selectedIds:[],onboardingPending:false};},
+    MakerWorldImportEventsReady:()=>{events.push('go:ready');return true;},
+  });
+  await ready(app);
+  assert.equal(app.calls.filter(x=>x==='MakerWorldImportEventsReady').length,1);
+  assert.equal(events.filter(x=>x==='go:ready').length,1);
+  for(const eventName of ['bridge:makerworld-imported','bridge:makerworld-import-failed']){
+    const idx=events.indexOf('subscribe:'+eventName);
+    assert.ok(idx>=0 && idx<events.indexOf('go:ready'),
+      eventName+' must subscribe BEFORE native startup queue is released');
+  }
+  assert.ok(events.indexOf('picker:loaded')>=0 && events.indexOf('picker:loaded')<events.indexOf('go:ready'),
+    'do not drain imports while the first-run target picker is loading');
+  const noRuntime=startApp({MakerWorldImportEventsReady:()=>events.push('invalid:no-runtime')});
+  await ready(noRuntime);
+  assert.equal(noRuntime.calls.includes('MakerWorldImportEventsReady'),false,
+    'without native EventsOn, queue release would silently drop browser events');
+  assert.equal(events.includes('invalid:no-runtime'),false);
+});
 
 test('built-in, installed and PrusaSlicer rows appear only when My Printers selects a supported destination',async()=>{
   const app=startApp({

@@ -73,9 +73,12 @@ only shipped UI languages. Toggle between them in the top bar; Hebrew is RTL.
 
 The optional `slicebridge://` import requires an explicit Developer Mode
 opt-in. At most **two** remote MakerWorld downloads run at once; extra
-distinct links are rejected immediately with a generic retry message,
-rather than silently starting unlimited downloads. Duplicate in-flight
-URLs remain ignored. This is a bounded-concurrency safeguard, **not**
+distinct live links are rejected immediately with a generic retry message
+after the frontend event handlers are ready, rather than starting unlimited
+downloads. Before the frontend is ready, up to 12 validated external-app
+links are buffered and drained two at a time as imports finish, without
+sending failure notices into an unregistered JavaScript listener. Duplicate
+in-flight URLs remain ignored. This is a bounded-concurrency safeguard, **not**
 a quota on downloaded files or independent approval of the remote source.
 The original hostname, redirect, HTTPS and private-network protections
 remain in effect. No physical printer is ever contacted by this feature.

@@ -8,8 +8,8 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## [0.4.0-beta.4.dev.29] - 2026-10-25 (experimental development source stage; not released)
 
-- **Bounded MakerWorld imports ([PR #96](https://github.com/nocturney/slicebridge/pull/96); review pending):** the opt-in Developer Mode external URI bridge now caps simultaneous 3MF HTTP downloads at two per desktop instance, rejects additional distinct URLs with a sanitized retry message, ignores duplicate in-flight URLs, and releases slots after success or failure. This limits concurrent download resources; it is **not** a total disk quota or physical print safety approval.
-- **Regression safety:** concurrent 100-URI in-memory permit race simulation, duplicate/retry/startup permit tests, and existing HTTPS/redirect/SSRF guards remain unchanged. No printer commands, browser permission change, user/OEM preset modifications or source geometry changes. Release, installer and hardware QA remain separate.
+- **Bounded MakerWorld imports ([PR #96](https://github.com/nocturney/slicebridge/pull/96); review pending):** the opt-in Developer Mode URI bridge caps simultaneous 3MF downloads at two per desktop instance and rejects extra live links with a sanitized retry message **after the UI is ready**. Links received during Wails startup remain in the existing bounded 12-entry queue; processing begins only after frontend MakerWorld event listeners register, and queued imports resume as slots free. Duplicate in-flight URLs are ignored and slots are released after success or error. This is not a total disk quota or physical print safety approval.
+- **Regression safety:** 100 concurrent in-memory permit reservations, race detection, complete 12-link startup queue drain, valid external-app URI early-link deferral and JS event-subscription/first-run-handshake tests; existing HTTPS/redirect/SSRF guards remain unchanged. No printer commands, browser permission change, user/OEM preset modifications or source geometry changes. Release, installer and hardware QA remain separate.
 
 ## [0.4.0-beta.4.dev.28] - 2026-10-25 (experimental development stage; not released)
 

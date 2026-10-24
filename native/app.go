@@ -30,6 +30,11 @@ type App struct {
 
 func (a *App) startup(ctx context.Context) { a.ctx = ctx }
 
+// Called by the Wails frontend only AFTER the MakerWorld event listeners
+// and first-run UI are ready. A startup URL may arrive in OnStartup or via
+// macOS OnUrlOpen before JavaScript exists; this safely releases that queue.
+func (a *App) MakerWorldImportEventsReady() { externalBridge.markFrontendReady() }
+
 type FileInfo struct {
 	Path      string `json:"path"`
 	Name      string `json:"name"`
