@@ -68,6 +68,8 @@ test('extra virtual filament slots are disclosed without any silent merge',()=>{
   assert.match(app,/virtualSlotsReview:'All \{n\} source color\/material/);
   assert.match(app,/נתון זה אינו קובע את קיבולת מערכת הזנת הפילמנט/);
   assert.match(app,/does not establish feeder capacity/);
+  assert.match(app,/towerPerPlateReview:'ב־3MF המומר יש/);
+  assert.match(app,/towerPerPlateReview:'The converted 3MF has/);
   assert.match(app,/const mappingReview=Boolean\(result\.ok&&requiresToolUseReview\(result\.report\)\)/);
   assert.match(app,/row\.append\(node\('p','warning-line material-mapping-warning'/);
   assert.match(app,/t\('virtualSlotsReview',\{n:report\.virtual_filament_slots,physical:report\.physical_toolheads\}\)/);
