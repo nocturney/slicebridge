@@ -991,6 +991,13 @@ async function initialiseNative(){
   publishSupportedTargets();
   await window.SliceBridgeMyPrinters?.init();
   renderCopy();renderTargets();renderQueue();renderResults();renderActionBar();
+  // The Go startup handler can receive external-app URLs before Wails event
+  // subscriptions exist. Release its bounded queue only AFTER this UI and
+  // both MakerWorld imported/failed event listeners have been registered.
+  if(window.runtime?.EventsOn && api()?.MakerWorldImportEventsReady){
+    try{await api().MakerWorldImportEventsReady();}
+    catch(e){setActivity('MakerWorld',String(e),'warning');}
+  }
 }
 
 registerHandlers();
