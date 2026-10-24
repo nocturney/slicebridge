@@ -39,6 +39,23 @@ func (a towerPlatePositionAudit) incomplete() bool {
 	return a.plates > 0 && (a.xEntries < a.plates || a.yEntries < a.plates)
 }
 
+// status reports what the converted 3MF metadata permits us to CHECK, not
+// whether any prime tower location is geometrically or physically safe.
+// Keep the prior incomplete boolean for existing clients; unknown is a
+// separate case rather than a false implication of successful verification.
+func (a towerPlatePositionAudit) status(primeTowerReview bool) string {
+	if !primeTowerReview {
+		return "not_applicable"
+	}
+	if a.plates == 0 {
+		return "plate_count_unknown"
+	}
+	if a.incomplete() {
+		return "coordinates_incomplete"
+	}
+	return "coordinates_present_clearance_unverified"
+}
+
 // auditTargetTowerPlatePositions does not change a 3MF or vendor/user presets.
 // A 2-plate Kobra3 3MF with zero or one coordinate pair was rejected by the
 // installed OrcaSlicer 2.4.2 with exit 192, while a QA-only project with one

@@ -3,6 +3,7 @@ package bridge
 import (
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -80,7 +81,8 @@ func TestSingleColorTwoPlateProjectDoesNotWarnAboutPrimeTowerPositions(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report["prime_tower_clearance_review_required"] != false ||
+	if report["prime_tower_plate_position_audit_status"] != "not_applicable" ||
+		report["prime_tower_clearance_review_required"] != false ||
 		report["prime_tower_plate_coordinate_review_required"] != false {
 		t.Fatalf("single-color should not get tower review: %+v", report)
 	}
@@ -92,5 +94,49 @@ func TestUnknownPlateMetadataDoesNotClaimPositionsVerified(t *testing.T) {
 	audit := auditTargetTowerPlatePositions(filename)
 	if audit.plates != 0 || audit.xEntries != 0 || audit.yEntries != 0 {
 		t.Fatalf("unknown plate count cannot be invented: %+v", audit)
+	}
+}
+
+func TestTowerPositionAuditStatusNeverMeansCollisionSafe(t *testing.T) {
+	cases := []struct {
+		name         string
+		enabled      bool
+		plates, x, y int
+		want         string
+	}{
+		{"no_tower", false, 2, 0, 0, "not_applicable"},
+		{"no_plate_metadata", true, 0, 0, 0, "plate_count_unknown"},
+		{"partial_pairs", true, 2, 1, 2, "coordinates_incomplete"},
+		{"no_pairs", true, 2, 0, 0, "coordinates_incomplete"},
+		{"all_pairs_present", true, 2, 2, 2, "coordinates_present_clearance_unverified"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			audit := towerPlatePositionAudit{plates: tc.plates, xEntries: tc.x, yEntries: tc.y}
+			if got := audit.status(tc.enabled); got != tc.want {
+				t.Fatalf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestUnknownPlateCountCallsOutUnverifiedTowerMetadata(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join(dir, "source.3mf")
+	output := filepath.Join(dir, "output.3mf")
+	fixture(t, source, 4) // This is an editable 3MF, but model_settings has <config/> only.
+	report, err := Convert(source, output, "u1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report["prime_tower_clearance_review_required"] != true ||
+		report["prime_tower_plates"] != 0 ||
+		report["prime_tower_plate_position_audit_status"] != "plate_count_unknown" ||
+		report["prime_tower_plate_coordinate_review_required"] != false {
+		t.Fatalf("unknown plate count must not become an approval: %+v", report)
+	}
+	warnings := strings.Join(report["warnings"].([]string), "\n")
+	if !strings.Contains(warnings, "plate count could not be determined") {
+		t.Fatalf("missing explicit unknown-plate QA warning: %s", warnings)
 	}
 }

@@ -4,7 +4,14 @@ Published development builds are listed under [GitHub Releases](https://github.c
 
 ## Unreleased
 
-## [0.4.0-beta.4.dev.27] - 2026-10-24 (experimental development build; not yet released)
+## [0.4.0-beta.4.dev.28] - 2026-10-25 (experimental development stage; not released)
+
+- **Virtual color slots remain independent ([PR #90](https://github.com/nocturney/slicebridge/pull/90)):** clarify that a single nozzle does not establish a one-slot feeder; native materials must be mapped manually, and no color is merged or discarded without explicit intent.
+- **Native prime tower placement audit ([PR #91](https://github.com/nocturney/slicebridge/pull/91)):** identify known multi-plate converted projects with missing per-plate X/Y tower entries and show a visible Hebrew/English review warning; this did not add or duplicate any coordinates. Real Kobra3/Orca 2.4.2, four-color Kuwait two-plate QA reproduced missing/single-pair failures and succeeded with two separately specified QA-only positions; this does **not** verify physical print safety or establish a universal position.
+- **Unknown-vs-verified diagnostic follow-up (review pending):** report four distinct tower plate-audit states: not applicable, plate count unknown, coordinates incomplete, and coordinates present but clearance unverified. An unknown count now produces an explicit visible review warning rather than a falsely reassuring absence of the incomplete-coordinate flag. Only report metadata is changed; no source/converted geometry, tower coordinates, nozzle, profiles or print jobs are altered.
+- This is a source-only development milestone, not a new downloadable release. End-to-end hardware feeder, prime-tower clearance and independent build/release approval are still outstanding.
+
+## [0.4.0-beta.4.dev.27] - 2026-10-24 (published experimental pre-release)
 
 - **Source painted material integrity (PR #87):** fail closed before output creation when painted triangle states in Bambu/Orca `paint_color` or Prusa `mmu_segmentation`, or explicit positive object/part `extruder` defaults, refer to filament IDs absent from the source's declared palette. Return `SOURCE_PAINT_SLOT_UNRESOLVED` with exact invalid IDs; do not guess tool assignments, overwrite the original project, drop paint or rewrite OEM profiles. A real four-slot Snapmaker "sea" 3MF contained painted IDs 5,6,11–15 and part default 7, with no decoded painted ID 4; this explains why its prior target G-code lacking T3 cannot be called a proven fourth-color conversion loss.
 - **Visible prime/wipe tower review (PR #88):** for multicolor output targeting an enabled native prime tower, report `prime_tower_clearance_review_required` and show a clear Hebrew/English warning outside hidden details: inspect native model/tower/brim/excluded-area collision before any print. No automatic tower movement or physical print actions; no false warning for single-filament projects.
