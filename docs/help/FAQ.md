@@ -14,7 +14,7 @@
 
 **Does SliceBridge bundle manufacturers' profiles?** The intended model is to use compatible profiles already installed on the user's machine, with manufacturer-native verified sources preferred where available. Redistribution of third-party profiles requires separate rights clearance.
 
-**Does it upload my model?** The conversion design is local-first; however, a full application and extension privacy review is pending. See [Privacy](../legal/PRIVACY.md).
+**Does it upload my model?** Standard 3MF conversion operates on your computer and does not send project files to a SliceBridge server. The optional MakerWorld integration (Developer Mode) can download a file from MakerWorld/Bambu when you choose to import it; the on-demand update check contacts GitHub for release metadata. See the [desktop and extension privacy disclosure](../legal/PRIVACY.md) for exact scope and review limits.
 
 **Where do I report a problem?** See [Support](../../.github/SUPPORT.md). For security vulnerabilities use [private reporting](../../.github/SECURITY.md).
 
@@ -26,6 +26,6 @@
 <p><strong>כל המדפסות נתמכות?</strong> לא. מדפסת שנמצאת בקטלוג אינה בהכרח מדפסת שההמרה אליה נבדקה. יש לבדוק גם דיזה וחומר.</p>
 <p><strong>מה קורה לקובץ המקורי?</strong> התכנון הוא להשאיר אותו ללא שינוי וליצור פלט נפרד לכל יעד. לפני הפצה תיבדק ההתנהגות הזו בפועל.</p>
 <p><strong>האם פרופילים של יצרנים מגיעים עם התוכנה?</strong> הכוונה היא להשתמש בפרופילים תואמים שכבר מותקנים אצל המשתמש, תוך העדפה לפרופילי יצרן מאומתים. הפצה מחדש של פרופילים מחייבת בדיקת זכויות נפרדת.</p>
-<p><strong>הקבצים נשלחים לענן?</strong> המרת הקבצים מתוכננת לפעול מקומית. בדיקת הפרטיות המלאה של התוכנה והתוסף עדיין פתוחה. <a href="../legal/PRIVACY.md">מידע על פרטיות</a>.</p>
+<p><strong>הקבצים נשלחים לענן?</strong> המרת קובצי 3MF מתבצעת במחשב ואינה מעלה את הפרויקט לשרת של SliceBridge. חיבור MakerWorld האופציונלי במצב מפתחים יכול להוריד קובץ מהאתר לפי בחירת המשתמש; בדיקת עדכונים יזומה פונה ל־GitHub למידע על גרסאות. <a href="../legal/PRIVACY.md">פירוט פעולות הרשת וגבולות בדיקת הפרטיות</a>.</p>
 <p><strong>איך מדווחים על תקלה?</strong> דרך <a href="../../.github/SUPPORT.md">עמוד התמיכה</a>. פגיעויות אבטחה יש לדווח <a href="../../.github/SECURITY.md">באופן פרטי</a>.</p>
 </div>
