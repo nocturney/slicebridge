@@ -46,6 +46,21 @@ SliceBridge converts editable 3MF projects from **Bambu Studio**, **Orca-family 
 
 SliceBridge מחבר בין סלייסרים: ממיר פרויקטי **3MF הניתנים לעריכה** מ־**Bambu Studio**, מסלייסרים ממשפחת **Orca** ומ־**MakerWorld** למדפסות שיש להן פרופילי סלייסר מקומיים זמינים, וגם לפרויקטי **PrusaSlicer**.
 
+### האפליקציה בעברית
+
+<p align="center" dir="rtl">
+  <a href="docs/assets/screenshots/workspace-he.png">
+    <img src="docs/assets/screenshots/workspace-he.png" width="100%" alt="צילום מסך אמיתי של סביבת העבודה של SliceBridge בעברית, עם קובצי מקור, מדפסות יעד ואזור תוצאות המרה." />
+  </a>
+</p>
+
+<p align="center" dir="rtl">
+  <a href="docs/assets/screenshots/printers-he.png"><img src="docs/assets/screenshots/printers-he.png" width="49%" alt="חלון המדפסות שלי בעברית, ובו נבחרה המדפסת Anycubic Kobra 3." /></a>
+  <a href="docs/assets/screenshots/results-he.png"><img src="docs/assets/screenshots/results-he.png" width="49%" alt="תוצאות המרה אמיתית בעברית, כולל מספר ההמרות שהצליחו והנחיות לבדיקת שיוך החומרים בסלייסר." /></a>
+</p>
+
+<p align="center" dir="rtl"><sub>צילומי מסך אמיתיים מ־v0.4.0-beta.5 · סביבת עבודה · בחירת מדפסת · דוח המרה</sub></p>
+
 **ארבעה צעדים פשוטים:** מוסיפים קבצים או תיקיות ← בוחרים מדפסת או יעד ← ממירים ← פותחים בסלייסר היעד ובודקים את התוצאה.
 
 - **עבודה מקומית:** קובצי המקור נשארים ללא שינוי.
