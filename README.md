@@ -31,6 +31,16 @@ SliceBridge converts editable 3MF projects from **Bambu Studio**, **Orca-family 
 
 **Your workflow:** Add 3MF files or folders → choose your target → convert → open the resulting project in your slicer.
 
+### Choose multiple printers
+
+In **My printers**, you can select several models for a batch workflow. This real beta.5 screenshot shows **five example printers selected at once**.
+
+<p align="center">
+  <a href="docs/assets/screenshots/multi-printers-en.png">
+    <img src="docs/assets/screenshots/multi-printers-en.png" width="80%" alt="Real SliceBridge beta.5 My printers window in English with five models selected: Anycubic Kobra 3, 4Max Pro, 4Max Pro 2, Anker M5 and M5C." />
+  </a>
+</p>
+
 - **Locally processed.** Conversion runs on your computer, and your original 3MF files remain unchanged.
 - **Keep your project editable.** Geometry and source color/material channels are carried over where the selected conversion supports them; batch conversion is available.
 - **Review before printing.** Check the target printer/nozzle, filament or tool mapping, purge and prime tower settings, and layer preview in the destination slicer. SliceBridge does not automatically send prints.
@@ -62,6 +72,16 @@ SliceBridge מחבר בין סלייסרים: ממיר פרויקטי **3MF הנ
 <p align="center" dir="rtl"><sub>צילומי מסך אמיתיים מ־v0.4.0-beta.5 · סביבת עבודה · בחירת מדפסת · דוח המרה</sub></p>
 
 **ארבעה צעדים פשוטים:** מוסיפים קבצים או תיקיות ← בוחרים מדפסת או יעד ← ממירים ← פותחים בסלייסר היעד ובודקים את התוצאה.
+
+### בחירת כמה מדפסות
+
+בחלון **המדפסות שלי** אפשר לסמן כמה דגמים יחד. בצילום אמיתי מ־beta.5 מוצגות **חמש מדפסות לדוגמה שנבחרו בו־זמנית**.
+
+<p align="center" dir="rtl">
+  <a href="docs/assets/screenshots/multi-printers-he.png">
+    <img src="docs/assets/screenshots/multi-printers-he.png" width="80%" alt="חלון המדפסות שלי ב־SliceBridge בעברית, ובו חמש מדפסות מסומנות: Anycubic Kobra 3, 4Max Pro, 4Max Pro 2, Anker M5 ו־M5C." />
+  </a>
+</p>
 
 - **עבודה מקומית:** קובצי המקור נשארים ללא שינוי.
 - **פרויקט שניתן להמשיך לערוך:** הגאומטריה וערוצי הצבע והחומר נשמרים בהתאם ליכולות מסלול ההמרה. אפשר להמיר כמה פרויקטים יחד.
