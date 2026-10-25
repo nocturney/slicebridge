@@ -22,26 +22,113 @@ import (
 
 const makerWorldMaxBytes int64 = 250 << 20
 
+// A malicious or accidental burst of distinct external app URLs must not
+// launch unbounded 250 MB downloads. This limits active imports per desktop
+// process, not the amount of work a user can perform over time.
+const maxConcurrentMakerWorldImports = 2
+
 // BrowserBridge opens only the private slicebridge:// protocol, never
 // overrides bambustudio:// or any system-wide .3mf default file handler.
+// It never buffers unbounded live 3MF download requests after startup.
 type BrowserBridge struct {
-	mu      sync.Mutex
-	waiting []string
-	active  map[string]bool
-	ctx     context.Context
+	mu            sync.Mutex
+	waiting       []string
+	active        map[string]bool
+	ctx           context.Context
+	frontendReady bool
+	// Test injection never exists in the production singleton. Tests use it to
+	// exercise startup queue ordering without downloading real models.
+	launchForTest func(context.Context, string)
 }
 
 var externalBridge = &BrowserBridge{active: map[string]bool{}}
 
+// reserveActiveImport is called only after Developer Mode and native
+// slicebridge:// validation. It is a permit counter, with no I/O or events,
+// and allows the import to start only when a desktop context exists.
+// Duplicates are silently ignored; overload has an explicit busy result.
+func (b *BrowserBridge) reserveActiveImport(raw string) (ctx context.Context, ok, busy bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ctx == nil || b.active[raw] {
+		return nil, false, false
+	}
+	if len(b.active) >= maxConcurrentMakerWorldImports {
+		return b.ctx, false, true
+	}
+	if b.active == nil {
+		b.active = make(map[string]bool, maxConcurrentMakerWorldImports)
+	}
+	b.active[raw] = true
+	return b.ctx, true, false
+}
+
+// The Wails runtime exists before the frontend subscribes to its event
+// stream. Do not drop or launch any startup import until the JS frontend
+// explicitly acknowledges that its imported/failed listeners are registered.
 func (b *BrowserBridge) setContext(ctx context.Context) {
 	b.mu.Lock()
 	b.ctx = ctx
-	queued := append([]string(nil), b.waiting...)
-	b.waiting = nil
 	b.mu.Unlock()
-	for _, raw := range queued {
-		b.handle(raw)
+	b.drainWaiting()
+}
+
+func (b *BrowserBridge) markFrontendReady() {
+	b.mu.Lock()
+	b.frontendReady = true
+	b.mu.Unlock()
+	b.drainWaiting()
+}
+
+// reserveWaitingImport pops the oldest distinct startup URL only when a
+// permit is available. The pop and active-set insert are under ONE mutex,
+// so concurrent Wails events cannot exceed the two-download limit.
+func (b *BrowserBridge) reserveWaitingImport() (context.Context, string, bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ctx == nil || !b.frontendReady || len(b.active) >= maxConcurrentMakerWorldImports {
+		return nil, "", false
 	}
+	for len(b.waiting) > 0 {
+		raw := b.waiting[0]
+		b.waiting[0] = ""
+		b.waiting = b.waiting[1:]
+		if b.active[raw] {
+			continue
+		}
+		if b.active == nil {
+			b.active = make(map[string]bool, maxConcurrentMakerWorldImports)
+		}
+		b.active[raw] = true
+		return b.ctx, raw, true
+	}
+	return nil, "", false
+}
+
+// Buffered external-app URLs must survive startup and be resumed as active
+// downloads finish. These URLs were already validated by acceptArg, but
+// Developer Mode is checked again to respect an in-flight disable.
+func (b *BrowserBridge) drainWaiting() {
+	for {
+		ctx, raw, ok := b.reserveWaitingImport()
+		if !ok {
+			return
+		}
+		if checkDeveloperMode() != nil {
+			b.mu.Lock()
+			delete(b.active, raw)
+			b.mu.Unlock()
+			continue
+		}
+		b.beginActiveImport(ctx, raw)
+	}
+}
+
+func (b *BrowserBridge) releaseActiveImport(raw string) {
+	b.mu.Lock()
+	delete(b.active, raw)
+	b.mu.Unlock()
+	b.drainWaiting()
 }
 func (b *BrowserBridge) acceptArg(arg string) {
 	// A browser extension installed earlier can still send MakerWorld URIs.
@@ -57,9 +144,18 @@ func (b *BrowserBridge) acceptArg(arg string) {
 		return
 	}
 	b.mu.Lock()
-	if b.ctx == nil {
+	if b.ctx == nil || !b.frontendReady {
 		if len(b.waiting) < 12 {
-			b.waiting = append(b.waiting, arg)
+			duplicate := b.active[arg]
+			for _, queued := range b.waiting {
+				if queued == arg {
+					duplicate = true
+					break
+				}
+			}
+			if !duplicate {
+				b.waiting = append(b.waiting, arg)
+			}
 		}
 		b.mu.Unlock()
 		return
@@ -72,20 +168,28 @@ func (b *BrowserBridge) handle(raw string) {
 	if checkDeveloperMode() != nil {
 		return
 	}
-	b.mu.Lock()
-	ctx := b.ctx
-	if ctx == nil {
-		b.mu.Unlock()
+	ctx, reserved, busy := b.reserveActiveImport(raw)
+	if !reserved {
+		if busy {
+			// A non-sensitive, bounded failure message is preferable to silently
+			// queueing hundreds of high-volume imports. Never expose the URL.
+			wailsruntime.EventsEmit(ctx, "bridge:makerworld-import-failed",
+				"MakerWorld already has two active imports. Retry after they finish.")
+		}
 		return
 	}
-	if b.active[raw] {
-		b.mu.Unlock()
+	b.beginActiveImport(ctx, raw)
+}
+
+// beginActiveImport must only be invoked after a successful permit
+// reservation. A test hook keeps queue and permit tests fully offline.
+func (b *BrowserBridge) beginActiveImport(ctx context.Context, raw string) {
+	if b.launchForTest != nil {
+		b.launchForTest(ctx, raw)
 		return
 	}
-	b.active[raw] = true
-	b.mu.Unlock()
 	go func() {
-		defer func() { b.mu.Lock(); delete(b.active, raw); b.mu.Unlock() }()
+		defer b.releaseActiveImport(raw)
 		link, err := makerworld.ParseLink(raw)
 		if err != nil {
 			return
