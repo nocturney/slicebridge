@@ -1,0 +1,26 @@
+name: Workflow hygiene
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint GitHub Actions YAML and expressions
+        continue-on-error: true # baseline mode; do not block on legacy CI findings
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color
+      - name: Audit workflow security
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        continue-on-error: true # report baseline vulnerabilities
+        with:
+          version: v1.31.1
+          advanced-security: 'false'
+          inputs: .github/workflows
