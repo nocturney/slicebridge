@@ -66,7 +66,8 @@ every catalogued printer is convertible.
 | No supported destination selected | Convert is disabled; the target panel explains how to open My Printers | Choose an available profile in My Printers; saved but unavailable/stale IDs cannot be converted |
 | Projects and supported targets selected | Convert is enabled and shows `files × printers` | Clearing either side returns to the disabled state |
 | Batch running | Progress is based on **completed source projects**; queue, destination and settings edits are disabled | The backend may report per-output errors; never imply a print was started |
-| Batch-level failure, including partial completion | **Conversion failed** and the backend error remain visible, even if `filesDone > 0` or `successes > 0` | Preserve any existing result details and re-enable the controls; a partial success must not override the failure headline |
+| Batch preflight error (`response.error`) | **Conversion failed** shows the backend error | Fix source/target inputs or settings and retry; preflight refuses the batch before processing projects |
+| Mixed per-file/per-target outcome (`successes > 0` and `failures > 0`) | **Conversion partially completed** with accurate counts and warning emphasis (Hebrew/English) | Keep succeeded outputs and failed entries distinct; review failures and retry only as appropriate in the slicer/workflow |
 | Structural conversion succeeded but physical mapping or tower clearance remains unverified | Result shows **Review mapping** and relevant cautions outside collapsed details | Operator checks tool/material assignments, G-code/layer preview and tower clearance in the destination slicer before printing |
 
 Source/target and error behavior: `tests/main-destinations-ui.test.js`,
