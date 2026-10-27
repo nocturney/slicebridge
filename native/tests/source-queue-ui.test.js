@@ -96,3 +96,34 @@ test('unknown target plate metadata has bilingual manual tower review wording',(
   assert.match(app,/towerPlateUnknownReview:'The converted 3MF/);
   assert.match(app,/tower-plate-unknown-warning/);
 });
+
+test('keyboard-activatable dropzone has a real accessible button role and localized name',()=>{
+  const html=read('frontend/dist/index.html');
+  const js=read('frontend/dist/app.js');
+  const tag=html.match(/<div id="dropzone"[^>]*>/)?.[0];
+  assert.ok(tag,'dropzone is missing');
+  assert.match(tag,/tabindex="0"/,'keyboard tab stop must remain');
+  assert.match(tag,/role="button"/,'focusable action must expose button semantics');
+  assert.match(tag,/aria-label="הוסף קבצים"/,'Hebrew fallback label must work before JS initializes');
+  assert.match(tag,/data-i18n-title="addFiles"/,'label must update with language changes');
+  assert.match(js,/addFiles:'הוסף קבצים'/);
+  assert.match(js,/addFiles:'Add files'/);
+  assert.match(js,/elem\.setAttribute\('aria-label',t\(elem\.dataset\.i18nTitle\)\)/);
+  assert.match(js,/drop\.addEventListener\('keydown'/);
+  assert.match(js,/if\(e\.key==='Enter'\|\|e\.key===' '\)\{e\.preventDefault\(\);pickFiles\(\);\}/);
+});
+
+test('dialog close controls keep localized accessible names in Hebrew and English',()=>{
+  const html=read('frontend/dist/index.html');
+  const js=read('frontend/dist/app.js');
+  const ids=['closeMyPrintersBtn','closePrinterProfileBtn','closeSettingsBtn',
+    'closeIntegrationsBtn','closeAboutBtn'];
+  for(const id of ids){
+    const tag=html.match(new RegExp('<button[^>]*id="'+id+'"[^>]*>'))?.[0];
+    assert.ok(tag,'missing close control '+id);
+    assert.match(tag,/aria-label="סגירה"/,'Hebrew fallback must not be English-only: '+id);
+    assert.match(tag,/data-i18n-title="close"/,'label must follow language: '+id);
+  }
+  assert.match(js,/close:'סגירה'/);
+  assert.match(js,/close:'Close'/);
+});
