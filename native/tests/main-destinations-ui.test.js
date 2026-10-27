@@ -401,3 +401,21 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
   assert.equal(ordinaryRow.querySelector('.tool-usage-warning'),null,
     'single-channel conversion should not get a false multicolor warning');
 });
+
+test('partial batch transport error keeps its visible failure state when some work completed',async()=>{
+  const app=startApp({
+    GetMyPrinters:()=>({selectedIds:[builtIn.u1],onboardingPending:false}),
+    SelectFiles:()=>[{path:'C:/models/partial.3mf',name:'partial.3mf',folder:'C:/models',sizeLabel:'1 KB'}],
+    ConvertBatch:()=>({
+      error:'Batch interrupted: disk full',filesDone:1,successes:1,failures:1,files:[]
+    }),
+  });
+  await ready(app);
+  app.dom('addFilesBtn').fire('click');await settle();
+  app.dom('convertBtn').fire('click');await settle();
+  assert.equal(app.dom('activityText').textContent,'Conversion failed',
+    'transport failure cannot be overwritten by a partial success');
+  assert.match(app.dom('activityDetail').textContent,/Batch interrupted: disk full/);
+  assert.match(app.dom('activityIcon').className,/warning/);
+  assert.equal(app.dom('convertBtn').disabled,false,'controls recover after a partial batch failure');
+});
