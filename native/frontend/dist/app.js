@@ -673,13 +673,13 @@ async function runBatch(){
   renderResults();renderQueue();renderTargets();renderActionBar();
   try{
     const response=await api().ConvertBatch({filePaths:files.map((f)=>f.path),targets});
-    if(response.error){
-      setActivity(t('convertError'),response.error,'warning');
-    }
     lastBatch=response;
     completedBatchFiles=Math.min(totalBatchFiles,response.filesDone||0);
     progressPhase=response.error?'error':'done';
-    if(response.filesDone){
+    // A batch-level error outranks partial per-file success in the primary status.
+    if(response.error){
+      setActivity(t('convertError'),response.error,'warning');
+    }else if(response.filesDone){
       setActivity(response.successes?t('finished'):t('failed'),
         response.successes?t('finishedHint',{success:response.successes,failed:response.failures}):t('failedHint'),
         response.successes?'':'warning');
