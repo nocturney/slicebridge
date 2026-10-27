@@ -53,6 +53,28 @@ The native desktop workflow now supports:
   Chromium runtime. The output remains a single Windows executable or
   compact signed-local macOS app bundle.
 
+### Source-to-printers UX state contract (implementation / QA)
+
+The native UI flow is owned by `frontend/dist/app.js` and
+`frontend/dist/my-printers.js`. This is a trace of shipped interface
+logic, not a second router, a claim of physical printing or an assumption that
+every catalogued printer is convertible.
+
+| Observable state / trigger | Primary visible state and allowed action | Failure or recovery |
+| --- | --- | --- |
+| No source projects | Source queue stays compact; Convert is disabled | Add a local 3MF or folder; more than 200 projects is rejected |
+| No supported destination selected | Convert is disabled; the target panel explains how to open My Printers | Choose an available profile in My Printers; saved but unavailable/stale IDs cannot be converted |
+| Projects and supported targets selected | Convert is enabled and shows `files × printers` | Clearing either side returns to the disabled state |
+| Batch running | Progress is based on **completed source projects**; queue, destination and settings edits are disabled | The backend may report per-output errors; never imply a print was started |
+| Batch-level failure, including partial completion | **Conversion failed** and the backend error remain visible, even if `filesDone > 0` or `successes > 0` | Preserve any existing result details and re-enable the controls; a partial success must not override the failure headline |
+| Structural conversion succeeded but physical mapping or tower clearance remains unverified | Result shows **Review mapping** and relevant cautions outside collapsed details | Operator checks tool/material assignments, G-code/layer preview and tower clearance in the destination slicer before printing |
+
+Source/target and error behavior: `tests/main-destinations-ui.test.js`,
+`tests/source-queue-ui.test.js`, `tests/my-printers-ui.test.js`.
+RTL/LTR and compact desktop layout: `tests/source-queue-layout-qa.cjs`.
+Those Chromium fixtures verify reachability and document workspace scrolling;
+they do **not** certify native Wails, a real file dialog or printer operation.
+
 ### More source colors than physical tools (development behavior)
 
 When a Bambu project has five or more original color/material slots, keep
