@@ -402,20 +402,42 @@ test('four-slot single-tool conversion warns outside collapsed details instead o
     'single-channel conversion should not get a false multicolor warning');
 });
 
-test('partial batch transport error keeps its visible failure state when some work completed',async()=>{
-  const app=startApp({
-    GetMyPrinters:()=>({selectedIds:[builtIn.u1],onboardingPending:false}),
-    SelectFiles:()=>[{path:'C:/models/partial.3mf',name:'partial.3mf',folder:'C:/models',sizeLabel:'1 KB'}],
-    ConvertBatch:()=>({
-      error:'Batch interrupted: disk full',filesDone:1,successes:1,failures:1,files:[]
-    }),
-  });
-  await ready(app);
-  app.dom('addFilesBtn').fire('click');await settle();
-  app.dom('convertBtn').fire('click');await settle();
-  assert.equal(app.dom('activityText').textContent,'Conversion failed',
-    'transport failure cannot be overwritten by a partial success');
-  assert.match(app.dom('activityDetail').textContent,/Batch interrupted: disk full/);
-  assert.match(app.dom('activityIcon').className,/warning/);
-  assert.equal(app.dom('convertBtn').disabled,false,'controls recover after a partial batch failure');
+test('a real mixed per-file batch outcome cannot be announced as fully completed',async()=>{
+  const good={path:'C:/models/good.3mf',name:'good.3mf',folder:'C:/models',sizeLabel:'1 KB',nozzle:'0.4'};
+  const broken={path:'C:/models/broken.3mf',name:'broken.3mf',folder:'C:/models',sizeLabel:'1 KB'};
+  async function perform(lang){
+    const app=startApp({
+      GetMyPrinters:()=>({selectedIds:[builtIn.u1],onboardingPending:false}),
+      SelectFiles:()=>[broken,good],
+      // Shape matches Go BatchReply after invalid sourceSummary + a valid source;
+      // native/workflow_test.go TestBatchContinuesAcrossSourceFailures.
+      ConvertBatch:()=>({
+        error:'',filesDone:2,successes:1,failures:1,
+        files:[
+          {source:broken,results:[],failures:[
+            {target:'u1',ok:false,code:'SOURCE_INVALID',error:'Invalid 3MF'}
+          ],error:'Invalid 3MF'},
+          {source:good,results:[
+            {target:'u1',ok:true,outputName:'U1-good.3mf',outputPath:'C:/models/U1-good.3mf',
+              report:{target_nozzle:'0.4',geometry_triangles:12}}
+          ],failures:[]},
+        ],
+      }),
+    });
+    await ready(app);
+    if(lang==='he')app.dom('heBtn').fire('click');
+    app.dom('addFilesBtn').fire('click');await settle();
+    app.dom('convertBtn').fire('click');await settle();
+    return app;
+  }
+  const en=await perform('en');
+  assert.equal(en.dom('activityText').textContent,'Conversion partially completed');
+  assert.match(en.dom('activityDetail').textContent,/1 successful, 1 failed/);
+  assert.match(en.dom('activityIcon').className,/warning/);
+  assert.equal(en.dom('resultList').querySelectorAll('.file-report').length,2);
+  assert.equal(en.dom('convertBtn').disabled,false);
+  const he=await perform('he');
+  assert.equal(he.dom('activityText').textContent,'ההמרה הושלמה חלקית');
+  assert.match(he.dom('activityDetail').textContent,/1 הצלחות, 1 כישלונות/);
+  assert.match(he.dom('activityIcon').className,/warning/);
 });
