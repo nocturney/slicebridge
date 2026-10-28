@@ -24,6 +24,6 @@
   "type": "commonjs",
   "devDependencies": {
     "@electron/packager": "^20.3.0",
-    "electron": "^44.9.1"
+    "electron": "^45.0.0"
   }
 }
