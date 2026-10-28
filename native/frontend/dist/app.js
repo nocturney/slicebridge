@@ -17,7 +17,7 @@ const translations = {
     idle:'ממתין לקבצים',idleHint:'בחר קבצים ומדפסות כדי להתחיל',
     ready:'מוכן להמרה',readyHint:'{files} קבצים × {printers} מדפסות',
     converting:'ממיר פרויקטים…',convertingFile:'קובץ {index} מתוך {total}: {name}',
-    finished:'ההמרה הושלמה',finishedHint:'{success} הצלחות, {failed} כישלונות',
+    finished:'ההמרה הושלמה',partialFinished:'ההמרה הושלמה חלקית',finishedHint:'{success} הצלחות, {failed} כישלונות',
     failed:'ההמרה נכשלה',failedHint:'לא נוצרו קובצי פלט',
     openFolder:'פתח תיקיית פלט',convert:'המרה',
     settingsTitle:'הגדרות מדפסות',
@@ -85,7 +85,7 @@ const translations = {
     idle:'Waiting for projects',idleHint:'Add projects and select printers to start',
     ready:'Ready to convert',readyHint:'{files} projects × {printers} printers',
     converting:'Converting projects…',convertingFile:'Project {index} of {total}: {name}',
-    finished:'Conversion completed',finishedHint:'{success} successful, {failed} failed',
+    finished:'Conversion completed',partialFinished:'Conversion partially completed',finishedHint:'{success} successful, {failed} failed',
     failed:'Conversion failed',failedHint:'No output projects created',
     openFolder:'Open output folder',convert:'Convert',
     settingsTitle:'Printer settings',
@@ -673,16 +673,19 @@ async function runBatch(){
   renderResults();renderQueue();renderTargets();renderActionBar();
   try{
     const response=await api().ConvertBatch({filePaths:files.map((f)=>f.path),targets});
-    if(response.error){
-      setActivity(t('convertError'),response.error,'warning');
-    }
     lastBatch=response;
     completedBatchFiles=Math.min(totalBatchFiles,response.filesDone||0);
     progressPhase=response.error?'error':'done';
-    if(response.filesDone){
-      setActivity(response.successes?t('finished'):t('failed'),
+    // A batch-level error outranks partial per-file success in the primary status.
+    if(response.error){
+      setActivity(t('convertError'),response.error,'warning');
+    }else if(response.filesDone){
+      const label=response.successes
+        ? (response.failures?t('partialFinished'):t('finished'))
+        : t('failed');
+      setActivity(label,
         response.successes?t('finishedHint',{success:response.successes,failed:response.failures}):t('failedHint'),
-        response.successes?'':'warning');
+        response.failures?'warning':'');
     }
     renderResults();
     el('resultsPanel').scrollTop=0;
