@@ -57,7 +57,7 @@
             <span class="btn-icon">▤</span><span data-i18n="addFolder">הוסף תיקייה</span>
           </button>
         </div>
-        <div id="dropzone" class="dropzone" tabindex="0">
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="הוסף קבצים" data-i18n-title="addFiles">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
           <p data-i18n="dropHint">אפשר לגרור קבצים או תיקייה לכאן</p>
         </div>
@@ -160,7 +160,7 @@
         <h2 id="myPrintersTitle">המדפסות שלי</h2>
         <p id="myPrintersIntro">בחר מדפסות מהרשימה או חפש יצרן ודגם.</p>
       </div>
-      <button type="button" id="closeMyPrintersBtn" class="ghost-btn close-dialog" aria-label="Close">×</button>
+      <button type="button" id="closeMyPrintersBtn" class="ghost-btn close-dialog" aria-label="סגירה" data-i18n-title="close">×</button>
     </header>
     <div class="dialog-scroll my-printers-content">
       <div class="selected-printer-overview" id="selectedPrinterOverview">
@@ -201,7 +201,7 @@
         <h2 id="printerProfileTitle">סלייסר מועדף</h2>
         <p id="printerProfileHint">סלייסר היצרן מועדף אוטומטית אם קיים פרופיל תקין למדפסת.</p>
       </div>
-      <button type="button" id="closePrinterProfileBtn" class="ghost-btn close-dialog" aria-label="Close">×</button>
+      <button type="button" id="closePrinterProfileBtn" class="ghost-btn close-dialog" aria-label="סגירה" data-i18n-title="close">×</button>
     </header>
     <div class="dialog-scroll printer-profile-content">
       <div id="printerProfileOptions" class="printer-profile-options" role="radiogroup" aria-labelledby="printerProfileTitle"></div>
@@ -221,7 +221,7 @@
         <h2 id="settingsTitle" data-i18n="settingsTitle">הגדרות מדפסות</h2>
         <p data-i18n="settingsHint">ההגדרות נשמרות מקומית ומשמשות בכל המרה חדשה.</p>
       </div>
-      <button type="button" id="closeSettingsBtn" class="ghost-btn close-dialog" aria-label="Close">×</button>
+      <button type="button" id="closeSettingsBtn" class="ghost-btn close-dialog" aria-label="סגירה" data-i18n-title="close">×</button>
     </header>
     <nav class="settings-tabs" id="settingsTabs" aria-label="Printer selection"></nav>
     <div class="dialog-scroll">
@@ -269,7 +269,7 @@
     <header class="dialog-header">
       <div><h2 id="integrationsTitle" data-i18n="integrationTitle">MakerWorld Setup</h2>
         <p data-i18n="integrationHint">Open MakerWorld projects directly in SliceBridge without replacing Bambu Studio.</p></div>
-      <button type="button" id="closeIntegrationsBtn" class="ghost-btn close-dialog" aria-label="Close">×</button>
+      <button type="button" id="closeIntegrationsBtn" class="ghost-btn close-dialog" aria-label="סגירה" data-i18n-title="close">×</button>
     </header>
     <div class="dialog-scroll integration-content">
       <section class="integration-step" aria-labelledby="integrationStepOne">
@@ -343,7 +343,7 @@
         <h2 id="aboutTitle" data-about-i18n="title">אודות SliceBridge</h2>
         <p data-about-i18n="subtitle">פרויקט אישי בקוד פתוח לחיבור בין סלייסרים.</p>
       </div>
-      <button id="closeAboutBtn" type="button" class="ghost-btn close-dialog" aria-label="Close">×</button>
+      <button id="closeAboutBtn" type="button" class="ghost-btn close-dialog" aria-label="סגירה" data-i18n-title="close">×</button>
     </header>
     <div class="dialog-scroll about-content">
       <div class="about-identity">
