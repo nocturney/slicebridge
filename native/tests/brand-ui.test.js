@@ -75,3 +75,11 @@ require('./extension-install-ui.test.js');
 // The native CI invokes this suite explicitly; keep the source queue geometry
 // regressions in that fixed list without changing a protected GitHub workflow.
 require('./source-queue-ui.test.js');
+
+// Keep the dynamically scrollable report operable from the keyboard.
+test('conversion results scroll region can receive keyboard focus with a visible indicator',()=>{
+ const page=read('frontend/dist/index.html');
+ const css=read('frontend/dist/app.css');
+ assert.match(page,/id="resultList" role="region" tabindex="0" aria-label="Conversion results"/);
+ assert.match(css,/\.results-scroll:focus-visible\{outline:2px solid var\(--brand\);outline-offset:-2px\}/);
+});
