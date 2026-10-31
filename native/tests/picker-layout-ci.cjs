@@ -6,7 +6,8 @@
 // Wails App that returns the committed catalogue, five saved IDs and installed Creator 5 Pro
 // nozzle/slicer variants. No Wails RPC, printer or slicer action is invoked.
 // Run from the repo root or native/:  node native/tests/picker-layout-ci.cjs
-// CHROME_BIN overrides the browser. PICKER_LAYOUT_CI_SCREENSHOTS=<dir> also writes one PNG per layout.
+// CHROME_BIN overrides the browser. PICKER_LAYOUT_CI_SCREENSHOTS=<dir> writes PNGs.
+// PICKER_LAYOUT_CI_ONLY=<scenario-name> narrows LOCAL diagnostic runs; forbidden in CI.
 // Exits 1 on any failed check, when no Chromium/Edge is found, or when a launched browser produces
 // no render marker. Nothing is reported as passed.
 const fs=require('node:fs');
@@ -77,6 +78,12 @@ const scenarios=[
   {name:'en-ltr-1100x750-catalogue-mapping',lang:'en',dir:'ltr',width:1100,height:750,filter:'',installed:false},
   {name:'en-ltr-1100x750-catalogue-all-ids',lang:'en',dir:'ltr',width:1100,height:750,filter:'',installed:false,expanded:true},
 ];
+
+// Optional fast local fixture for ChatGPT-driven screenshot review; never narrow CI coverage.
+const onlyScenario=process.env.PICKER_LAYOUT_CI_ONLY||'';
+if(onlyScenario&&process.env.CI)throw Error('PICKER_LAYOUT_CI_ONLY is forbidden in CI');
+const selectedScenarios=onlyScenario?scenarios.filter(s=>s.name===onlyScenario):scenarios;
+if(!selectedScenarios.length)throw Error('Unknown PICKER_LAYOUT_CI_ONLY: '+onlyScenario);
 
 // Runs inside the page after my-printers.js. Opens the real dialog and reports its geometry.
 function pageMain(config){
@@ -452,7 +459,7 @@ const profileRoot=fs.mkdtempSync(path.join(os.tmpdir(),'slicebridge-chromium-'))
 let failed=0;
 const successfulRenderers=new Set();
 try{
-  for(const scenario of scenarios){
+  for(const scenario of selectedScenarios){
     const htmlPath=path.join(workDir,scenario.name+'.html');
     fs.writeFileSync(htmlPath,hostPage(scenario),'utf8');
     const result=renderScenario(scenario,htmlPath,profileRoot);
@@ -493,7 +500,7 @@ try{
 }
 function J(r){return JSON.stringify(Object.fromEntries(Object.entries(r).map(([k,v])=>[k,Math.round(v)])));}
 if(failed){
-  console.log(failed+' of '+scenarios.length+' My Printers layout scenario(s) failed');
+  console.log(failed+' of '+selectedScenarios.length+' My Printers layout scenario(s) failed');
   process.exit(1);
 }
-console.log('all '+scenarios.length+' My Printers layout scenarios passed in '+[...successfulRenderers].join(', '));
+console.log('all '+selectedScenarios.length+' My Printers layout scenarios passed in '+[...successfulRenderers].join(', '));

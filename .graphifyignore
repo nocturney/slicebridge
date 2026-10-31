@@ -1,0 +1,6 @@
+# Graphify: only checked-in source; skip regenerated artifacts.
+graphify-out/
+**/node_modules/
+native/frontend/wailsjs/
+native/frontend/dist/
+catalog/build-output/
